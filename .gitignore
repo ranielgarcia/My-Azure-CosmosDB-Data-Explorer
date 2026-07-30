@@ -12,6 +12,9 @@ server/dist/
 .vite/
 *.local
 
+# Persisted tab session (local runtime state)
+server/data/
+
 # TypeScript incremental build info
 *.tsbuildinfo
 

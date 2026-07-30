@@ -108,4 +108,45 @@ describe("tabStore", () => {
     expect(tab.isLoading).toBe(false);
     expect(tab.error).toEqual({ message: "boom", code: 400 });
   });
+
+  it("hydrate loads persisted tabs with empty transient state", () => {
+    useTabStore.getState().hydrate({
+      tabs: [
+        {
+          id: makeTabId("db1", "c1"),
+          databaseId: "db1",
+          containerId: "c1",
+          label: "db1 / c1",
+          query: "SELECT * FROM c WHERE c.id = 1",
+        },
+      ],
+      activeTabId: makeTabId("db1", "c1"),
+    });
+
+    const { tabs, activeTabId, hydrated } = useTabStore.getState();
+    expect(hydrated).toBe(true);
+    expect(tabs).toHaveLength(1);
+    expect(tabs[0].query).toBe("SELECT * FROM c WHERE c.id = 1");
+    expect(tabs[0].results).toBeNull();
+    expect(tabs[0].error).toBeNull();
+    expect(tabs[0].isLoading).toBe(false);
+    expect(activeTabId).toBe(makeTabId("db1", "c1"));
+  });
+
+  it("hydrate falls back to the first tab when activeTabId is stale", () => {
+    useTabStore.getState().hydrate({
+      tabs: [
+        {
+          id: makeTabId("db1", "c1"),
+          databaseId: "db1",
+          containerId: "c1",
+          label: "db1 / c1",
+          query: "SELECT * FROM c",
+        },
+      ],
+      activeTabId: "does__not_exist",
+    });
+
+    expect(useTabStore.getState().activeTabId).toBe(makeTabId("db1", "c1"));
+  });
 });

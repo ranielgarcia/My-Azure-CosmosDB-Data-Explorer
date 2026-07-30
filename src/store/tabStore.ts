@@ -1,6 +1,6 @@
 import { create } from "zustand";
 import type { QueryError, QueryResult } from "@/types/cosmos";
-import type { TabState } from "@/types/tabs";
+import type { TabSession, TabState } from "@/types/tabs";
 
 const DEFAULT_QUERY = "SELECT * FROM c";
 
@@ -11,6 +11,8 @@ export function makeTabId(dbId: string, containerId: string): string {
 interface TabStore {
   tabs: TabState[];
   activeTabId: string | null;
+  /** True once the persisted session has been loaded from the server. */
+  hydrated: boolean;
 
   openTab: (dbId: string, containerId: string) => void;
   closeTab: (id: string) => void;
@@ -18,6 +20,8 @@ interface TabStore {
   updateQuery: (tabId: string, query: string) => void;
   setTabLoading: (tabId: string, isLoading: boolean) => void;
   setTabError: (tabId: string, error: QueryError) => void;
+  /** Replace the in-memory tabs from a persisted session (results start empty). */
+  hydrate: (session: TabSession) => void;
   /**
    * Apply a page of query results.
    * - `replace` (fresh run): results become this page; RU resets.
@@ -41,6 +45,7 @@ function updateTab(
 export const useTabStore = create<TabStore>((set) => ({
   tabs: [],
   activeTabId: null,
+  hydrated: false,
 
   openTab: (dbId, containerId) =>
     set((state) => {
@@ -77,6 +82,26 @@ export const useTabStore = create<TabStore>((set) => ({
     }),
 
   setActiveTab: (id) => set({ activeTabId: id }),
+
+  hydrate: (session) =>
+    set(() => {
+      const tabs: TabState[] = session.tabs.map((tab) => ({
+        id: tab.id,
+        databaseId: tab.databaseId,
+        containerId: tab.containerId,
+        label: tab.label,
+        query: tab.query,
+        results: null,
+        error: null,
+        isLoading: false,
+      }));
+      const activeTabId =
+        session.activeTabId &&
+        tabs.some((tab) => tab.id === session.activeTabId)
+          ? session.activeTabId
+          : (tabs[0]?.id ?? null);
+      return { tabs, activeTabId, hydrated: true };
+    }),
 
   updateQuery: (tabId, query) =>
     set((state) => ({

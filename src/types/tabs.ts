@@ -18,3 +18,14 @@ export interface TabState {
   error: QueryError | null;
   isLoading: boolean;
 }
+
+/** The durable subset of a tab that is persisted server-side. */
+export type PersistedTab = Pick<
+  TabState,
+  "id" | "databaseId" | "containerId" | "label" | "query"
+>;
+
+export interface TabSession {
+  tabs: PersistedTab[];
+  activeTabId: string | null;
+}

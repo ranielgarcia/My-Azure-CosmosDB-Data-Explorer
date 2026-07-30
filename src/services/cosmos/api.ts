@@ -4,6 +4,7 @@ import type {
   QueryError,
   QueryResult,
 } from "@/types/cosmos";
+import type { TabSession } from "@/types/tabs";
 
 const BASE_URL = import.meta.env.VITE_API_BASE_URL ?? "/api";
 
@@ -56,4 +57,15 @@ export async function executeQuery(
       body: JSON.stringify({ query, maxItemCount, continuationToken }),
     },
   );
+}
+
+export async function fetchTabSession(): Promise<TabSession> {
+  return request<TabSession>("/tabs");
+}
+
+export async function saveTabSession(session: TabSession): Promise<void> {
+  await request<TabSession>("/tabs", {
+    method: "PUT",
+    body: JSON.stringify(session),
+  });
 }
