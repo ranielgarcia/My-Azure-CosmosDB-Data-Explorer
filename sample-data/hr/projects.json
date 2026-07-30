@@ -1,0 +1,297 @@
+[
+  {
+    "id": "proj-001",
+    "status": "active",
+    "title": "Customer Portal Redesign",
+    "description": "Full UX overhaul of the customer self-service portal to improve CSAT scores.",
+    "teamId": "team-design",
+    "budget": 85000,
+    "currency": "USD",
+    "startDate": "2025-04-01",
+    "endDate": "2025-09-30",
+    "milestones": [
+      {
+        "name": "Discovery & Research",
+        "dueDate": "2025-04-30",
+        "completed": true
+      },
+      {
+        "name": "Wireframes & Prototypes",
+        "dueDate": "2025-06-15",
+        "completed": true
+      },
+      {
+        "name": "Development Handoff",
+        "dueDate": "2025-07-31",
+        "completed": false
+      },
+      { "name": "UAT & Launch", "dueDate": "2025-09-30", "completed": false }
+    ],
+    "tags": ["ux", "portal", "customer-experience"]
+  },
+  {
+    "id": "proj-002",
+    "status": "active",
+    "title": "Payment Gateway Integration",
+    "description": "Integrate Stripe and PayPal as secondary payment processors alongside the existing gateway.",
+    "teamId": "team-engineering",
+    "budget": 60000,
+    "currency": "USD",
+    "startDate": "2025-05-01",
+    "endDate": "2025-08-31",
+    "milestones": [
+      {
+        "name": "Requirements & Contracts",
+        "dueDate": "2025-05-15",
+        "completed": true
+      },
+      {
+        "name": "Stripe Integration",
+        "dueDate": "2025-06-30",
+        "completed": true
+      },
+      {
+        "name": "PayPal Integration",
+        "dueDate": "2025-07-31",
+        "completed": false
+      },
+      {
+        "name": "Security Audit & Go-Live",
+        "dueDate": "2025-08-31",
+        "completed": false
+      }
+    ],
+    "tags": ["payments", "integration", "backend"]
+  },
+  {
+    "id": "proj-003",
+    "status": "completed",
+    "title": "Mobile App v2 Launch",
+    "description": "Rebuilt iOS and Android apps using React Native with offline sync capabilities.",
+    "teamId": "team-engineering",
+    "budget": 200000,
+    "currency": "USD",
+    "startDate": "2024-09-01",
+    "endDate": "2025-03-31",
+    "milestones": [
+      {
+        "name": "Architecture Design",
+        "dueDate": "2024-09-30",
+        "completed": true
+      },
+      { "name": "Alpha Build", "dueDate": "2024-12-15", "completed": true },
+      { "name": "Beta Testing", "dueDate": "2025-02-28", "completed": true },
+      {
+        "name": "App Store Release",
+        "dueDate": "2025-03-31",
+        "completed": true
+      }
+    ],
+    "tags": ["mobile", "react-native", "ios", "android"]
+  },
+  {
+    "id": "proj-004",
+    "status": "completed",
+    "title": "Brand Identity Refresh",
+    "description": "Updated logo, color palette, typography, and brand guidelines across all digital surfaces.",
+    "teamId": "team-design",
+    "budget": 40000,
+    "currency": "USD",
+    "startDate": "2025-01-15",
+    "endDate": "2025-04-30",
+    "milestones": [
+      { "name": "Brand Audit", "dueDate": "2025-01-31", "completed": true },
+      {
+        "name": "Concept Development",
+        "dueDate": "2025-02-28",
+        "completed": true
+      },
+      {
+        "name": "Stakeholder Approval",
+        "dueDate": "2025-03-15",
+        "completed": true
+      },
+      { "name": "Asset Rollout", "dueDate": "2025-04-30", "completed": true }
+    ],
+    "tags": ["branding", "design", "marketing"]
+  },
+  {
+    "id": "proj-005",
+    "status": "planned",
+    "title": "AI Product Recommendation Engine",
+    "description": "Build an ML-powered recommendation system to personalise product feeds and increase conversion.",
+    "teamId": "team-engineering",
+    "budget": 175000,
+    "currency": "USD",
+    "startDate": "2025-10-01",
+    "endDate": "2026-03-31",
+    "milestones": [
+      {
+        "name": "Data Pipeline Setup",
+        "dueDate": "2025-10-31",
+        "completed": false
+      },
+      {
+        "name": "Model Training v1",
+        "dueDate": "2025-12-31",
+        "completed": false
+      },
+      {
+        "name": "A/B Test Integration",
+        "dueDate": "2026-02-28",
+        "completed": false
+      },
+      { "name": "Full Rollout", "dueDate": "2026-03-31", "completed": false }
+    ],
+    "tags": ["ai", "ml", "personalisation", "recommendations"]
+  },
+  {
+    "id": "proj-006",
+    "status": "planned",
+    "title": "Enterprise Sales Dashboard",
+    "description": "Self-serve analytics dashboard giving enterprise clients real-time visibility into their account metrics.",
+    "teamId": "team-product",
+    "budget": 90000,
+    "currency": "USD",
+    "startDate": "2025-09-15",
+    "endDate": "2026-01-31",
+    "milestones": [
+      {
+        "name": "Stakeholder Interviews",
+        "dueDate": "2025-09-30",
+        "completed": false
+      },
+      {
+        "name": "Data Model Design",
+        "dueDate": "2025-10-31",
+        "completed": false
+      },
+      { "name": "Dashboard MVP", "dueDate": "2025-12-15", "completed": false },
+      {
+        "name": "Enterprise Pilot",
+        "dueDate": "2026-01-31",
+        "completed": false
+      }
+    ],
+    "tags": ["analytics", "enterprise", "dashboard", "saas"]
+  },
+  {
+    "id": "proj-007",
+    "status": "on-hold",
+    "title": "Multi-Region APAC Expansion",
+    "description": "Infrastructure and localisation work to support customers in Japan, Australia, and Singapore.",
+    "teamId": "team-product",
+    "budget": 300000,
+    "currency": "USD",
+    "startDate": "2025-03-01",
+    "endDate": "2025-12-31",
+    "milestones": [
+      {
+        "name": "Legal & Compliance Review",
+        "dueDate": "2025-04-30",
+        "completed": true
+      },
+      {
+        "name": "Infrastructure Provisioning",
+        "dueDate": "2025-07-31",
+        "completed": false
+      },
+      {
+        "name": "Localisation (JP/EN/AU)",
+        "dueDate": "2025-10-31",
+        "completed": false
+      },
+      { "name": "Soft Launch", "dueDate": "2025-12-31", "completed": false }
+    ],
+    "tags": ["expansion", "apac", "infrastructure", "localisation"]
+  },
+  {
+    "id": "proj-008",
+    "status": "active",
+    "title": "Developer API Portal",
+    "description": "Public-facing API documentation and sandbox environment for third-party integrators.",
+    "teamId": "team-engineering",
+    "budget": 55000,
+    "currency": "USD",
+    "startDate": "2025-05-15",
+    "endDate": "2025-09-15",
+    "milestones": [
+      {
+        "name": "API Spec (OpenAPI 3.1)",
+        "dueDate": "2025-06-01",
+        "completed": true
+      },
+      {
+        "name": "Sandbox Environment",
+        "dueDate": "2025-07-01",
+        "completed": false
+      },
+      {
+        "name": "Docs Site Launch",
+        "dueDate": "2025-08-15",
+        "completed": false
+      },
+      {
+        "name": "Developer Beta Program",
+        "dueDate": "2025-09-15",
+        "completed": false
+      }
+    ],
+    "tags": ["api", "developer-experience", "documentation"]
+  },
+  {
+    "id": "proj-009",
+    "status": "completed",
+    "title": "Q1 Sales Performance Analytics",
+    "description": "Automated quarterly sales report pipeline replacing manual spreadsheet exports.",
+    "teamId": "team-sales",
+    "budget": 20000,
+    "currency": "USD",
+    "startDate": "2025-01-10",
+    "endDate": "2025-03-15",
+    "milestones": [
+      {
+        "name": "Data Source Mapping",
+        "dueDate": "2025-01-31",
+        "completed": true
+      },
+      { "name": "Pipeline Build", "dueDate": "2025-02-28", "completed": true },
+      {
+        "name": "Dashboard Delivery",
+        "dueDate": "2025-03-15",
+        "completed": true
+      }
+    ],
+    "tags": ["analytics", "sales", "reporting", "automation"]
+  },
+  {
+    "id": "proj-010",
+    "status": "planned",
+    "title": "Customer Loyalty Programme",
+    "description": "Points-based loyalty system with tiered rewards, integrated into the checkout and mobile app.",
+    "teamId": "team-product",
+    "budget": 130000,
+    "currency": "USD",
+    "startDate": "2026-01-01",
+    "endDate": "2026-06-30",
+    "milestones": [
+      {
+        "name": "Programme Design",
+        "dueDate": "2026-01-31",
+        "completed": false
+      },
+      {
+        "name": "Backend Services",
+        "dueDate": "2026-03-31",
+        "completed": false
+      },
+      {
+        "name": "Mobile Integration",
+        "dueDate": "2026-05-31",
+        "completed": false
+      },
+      { "name": "Launch Campaign", "dueDate": "2026-06-30", "completed": false }
+    ],
+    "tags": ["loyalty", "retention", "mobile", "product"]
+  }
+]

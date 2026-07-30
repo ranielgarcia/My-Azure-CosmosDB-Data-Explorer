@@ -1,0 +1,310 @@
+[
+  {
+    "id": "ord-001",
+    "customerId": "cust-101",
+    "customerName": "Sarah Johansson",
+    "status": "delivered",
+    "items": [
+      {
+        "productId": "prod-001",
+        "productName": "UltraSound Headphones Pro",
+        "quantity": 1,
+        "unitPrice": 129.99
+      },
+      {
+        "productId": "prod-003",
+        "productName": "Wireless Charging Pad 15W",
+        "quantity": 2,
+        "unitPrice": 39.99
+      }
+    ],
+    "subtotal": 209.97,
+    "tax": 21.0,
+    "total": 230.97,
+    "shippingAddress": {
+      "line1": "14 Maple Street",
+      "city": "Seattle",
+      "state": "WA",
+      "postalCode": "98101",
+      "country": "US"
+    },
+    "createdAt": "2025-06-01T14:22:00Z",
+    "updatedAt": "2025-06-04T10:05:00Z"
+  },
+  {
+    "id": "ord-002",
+    "customerId": "cust-102",
+    "customerName": "Marcus Reynolds",
+    "status": "shipped",
+    "items": [
+      {
+        "productId": "prod-002",
+        "productName": "SmartWatch Series X",
+        "quantity": 1,
+        "unitPrice": 249.99
+      }
+    ],
+    "subtotal": 249.99,
+    "tax": 25.0,
+    "total": 274.99,
+    "shippingAddress": {
+      "line1": "8 Riverside Drive",
+      "city": "Austin",
+      "state": "TX",
+      "postalCode": "73301",
+      "country": "US"
+    },
+    "createdAt": "2025-06-05T09:45:00Z",
+    "updatedAt": "2025-06-06T16:30:00Z"
+  },
+  {
+    "id": "ord-003",
+    "customerId": "cust-103",
+    "customerName": "Priya Nair",
+    "status": "processing",
+    "items": [
+      {
+        "productId": "prod-007",
+        "productName": "Designing Data-Intensive Applications",
+        "quantity": 1,
+        "unitPrice": 44.99
+      },
+      {
+        "productId": "prod-008",
+        "productName": "Clean Code",
+        "quantity": 1,
+        "unitPrice": 34.99
+      }
+    ],
+    "subtotal": 79.98,
+    "tax": 8.0,
+    "total": 87.98,
+    "shippingAddress": {
+      "line1": "22 Oak Avenue",
+      "city": "Chicago",
+      "state": "IL",
+      "postalCode": "60601",
+      "country": "US"
+    },
+    "createdAt": "2025-06-07T11:00:00Z",
+    "updatedAt": "2025-06-07T11:00:00Z"
+  },
+  {
+    "id": "ord-004",
+    "customerId": "cust-101",
+    "customerName": "Sarah Johansson",
+    "status": "delivered",
+    "items": [
+      {
+        "productId": "prod-004",
+        "productName": "Performance Running Jacket",
+        "quantity": 1,
+        "unitPrice": 89.99
+      },
+      {
+        "productId": "prod-005",
+        "productName": "Merino Wool Crewneck Sweater",
+        "quantity": 1,
+        "unitPrice": 74.99
+      }
+    ],
+    "subtotal": 164.98,
+    "tax": 16.5,
+    "total": 181.48,
+    "shippingAddress": {
+      "line1": "14 Maple Street",
+      "city": "Seattle",
+      "state": "WA",
+      "postalCode": "98101",
+      "country": "US"
+    },
+    "createdAt": "2025-05-20T08:15:00Z",
+    "updatedAt": "2025-05-24T13:00:00Z"
+  },
+  {
+    "id": "ord-005",
+    "customerId": "cust-104",
+    "customerName": "Tobias Müller",
+    "status": "cancelled",
+    "items": [
+      {
+        "productId": "prod-009",
+        "productName": "Ergonomic Mesh Desk Chair",
+        "quantity": 1,
+        "unitPrice": 349.99
+      }
+    ],
+    "subtotal": 349.99,
+    "tax": 35.0,
+    "total": 384.99,
+    "shippingAddress": {
+      "line1": "5 Harbor View",
+      "city": "San Francisco",
+      "state": "CA",
+      "postalCode": "94105",
+      "country": "US"
+    },
+    "createdAt": "2025-06-02T17:30:00Z",
+    "updatedAt": "2025-06-03T09:00:00Z"
+  },
+  {
+    "id": "ord-006",
+    "customerId": "cust-105",
+    "customerName": "Amara Osei",
+    "status": "delivered",
+    "items": [
+      {
+        "productId": "prod-010",
+        "productName": "Bamboo Cutting Board Set (3-piece)",
+        "quantity": 2,
+        "unitPrice": 29.99
+      },
+      {
+        "productId": "prod-006",
+        "productName": "Slim Fit Stretch Chinos",
+        "quantity": 1,
+        "unitPrice": 59.99
+      }
+    ],
+    "subtotal": 119.97,
+    "tax": 12.0,
+    "total": 131.97,
+    "shippingAddress": {
+      "line1": "77 Elm Road",
+      "city": "New York",
+      "state": "NY",
+      "postalCode": "10001",
+      "country": "US"
+    },
+    "createdAt": "2025-05-28T13:20:00Z",
+    "updatedAt": "2025-06-01T11:45:00Z"
+  },
+  {
+    "id": "ord-007",
+    "customerId": "cust-102",
+    "customerName": "Marcus Reynolds",
+    "status": "processing",
+    "items": [
+      {
+        "productId": "prod-001",
+        "productName": "UltraSound Headphones Pro",
+        "quantity": 1,
+        "unitPrice": 129.99
+      },
+      {
+        "productId": "prod-002",
+        "productName": "SmartWatch Series X",
+        "quantity": 1,
+        "unitPrice": 249.99
+      }
+    ],
+    "subtotal": 379.98,
+    "tax": 38.0,
+    "total": 417.98,
+    "shippingAddress": {
+      "line1": "8 Riverside Drive",
+      "city": "Austin",
+      "state": "TX",
+      "postalCode": "73301",
+      "country": "US"
+    },
+    "createdAt": "2025-06-08T10:10:00Z",
+    "updatedAt": "2025-06-08T10:10:00Z"
+  },
+  {
+    "id": "ord-008",
+    "customerId": "cust-106",
+    "customerName": "Lin Wei",
+    "status": "pending",
+    "items": [
+      {
+        "productId": "prod-009",
+        "productName": "Ergonomic Mesh Desk Chair",
+        "quantity": 1,
+        "unitPrice": 349.99
+      },
+      {
+        "productId": "prod-010",
+        "productName": "Bamboo Cutting Board Set (3-piece)",
+        "quantity": 1,
+        "unitPrice": 29.99
+      }
+    ],
+    "subtotal": 379.98,
+    "tax": 38.0,
+    "total": 417.98,
+    "shippingAddress": {
+      "line1": "99 Peach Blossom Lane",
+      "city": "Portland",
+      "state": "OR",
+      "postalCode": "97201",
+      "country": "US"
+    },
+    "createdAt": "2025-06-08T15:55:00Z",
+    "updatedAt": "2025-06-08T15:55:00Z"
+  },
+  {
+    "id": "ord-009",
+    "customerId": "cust-107",
+    "customerName": "Elena Vasquez",
+    "status": "shipped",
+    "items": [
+      {
+        "productId": "prod-005",
+        "productName": "Merino Wool Crewneck Sweater",
+        "quantity": 2,
+        "unitPrice": 74.99
+      },
+      {
+        "productId": "prod-006",
+        "productName": "Slim Fit Stretch Chinos",
+        "quantity": 1,
+        "unitPrice": 59.99
+      }
+    ],
+    "subtotal": 209.97,
+    "tax": 21.0,
+    "total": 230.97,
+    "shippingAddress": {
+      "line1": "33 Sunset Boulevard",
+      "city": "Denver",
+      "state": "CO",
+      "postalCode": "80201",
+      "country": "US"
+    },
+    "createdAt": "2025-06-06T09:30:00Z",
+    "updatedAt": "2025-06-07T14:20:00Z"
+  },
+  {
+    "id": "ord-010",
+    "customerId": "cust-108",
+    "customerName": "Jordan Bakker",
+    "status": "delivered",
+    "items": [
+      {
+        "productId": "prod-007",
+        "productName": "Designing Data-Intensive Applications",
+        "quantity": 1,
+        "unitPrice": 44.99
+      },
+      {
+        "productId": "prod-003",
+        "productName": "Wireless Charging Pad 15W",
+        "quantity": 1,
+        "unitPrice": 39.99
+      }
+    ],
+    "subtotal": 84.98,
+    "tax": 8.5,
+    "total": 93.48,
+    "shippingAddress": {
+      "line1": "201 Birch Court",
+      "city": "Boston",
+      "state": "MA",
+      "postalCode": "02101",
+      "country": "US"
+    },
+    "createdAt": "2025-05-25T12:00:00Z",
+    "updatedAt": "2025-05-29T09:15:00Z"
+  }
+]
