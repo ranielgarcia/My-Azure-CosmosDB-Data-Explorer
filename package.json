@@ -4,9 +4,9 @@
   "version": "0.1.0",
   "type": "module",
   "scripts": {
-    "dev:server": "tsx watch server/index.ts",
+    "dev:server": "node --watch --import tsx server/index.ts",
     "dev:client": "vite",
-    "dev": "concurrently -n server,client -c blue,green \"npm:dev:server\" \"npm:dev:client\"",
+    "dev": "concurrently -n server,client -c blue,green \"npm:dev:server\" \"wait-on http://127.0.0.1:3001/api/health && npm run dev:client\"",
     "build": "tsc -b && vite build",
     "preview": "vite preview",
     "test": "vitest run",
@@ -40,6 +40,7 @@
     "tsx": "^4.19.2",
     "typescript": "^5.7.2",
     "vite": "^6.0.5",
-    "vitest": "^2.1.8"
+    "vitest": "^2.1.8",
+    "wait-on": "^8.0.1"
   }
 }

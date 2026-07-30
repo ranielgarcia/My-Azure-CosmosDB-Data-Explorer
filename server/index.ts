@@ -15,6 +15,12 @@ const app = express();
 app.use(cors({ origin: "http://localhost:5173" }));
 app.use(express.json({ limit: "1mb" }));
 
+// Liveness probe. Registered before the Cosmos routers so it responds the
+// moment Express binds the port, letting the client wait for the proxy to be ready.
+app.get("/api/health", (_req: Request, res: Response) => {
+  res.json({ status: "ok" });
+});
+
 app.use("/api", databasesRouter);
 app.use("/api", containersRouter);
 app.use("/api", queryRouter);
