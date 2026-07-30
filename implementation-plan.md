@@ -2,7 +2,7 @@
 
 ## Overview
 
-Build a Vite + React + TypeScript Cosmos DB Data Explorer inside `kleene-cosmos-db-data-explorer/` that
+Build a Vite + React + TypeScript Cosmos DB Data Explorer inside `src/` that
 replicates the core functionality of Azure Cosmos DB Data Explorer with a cleaner, minimal, dark-mode UI.
 The Azure Cosmos SDK runs inside a lightweight Express backend proxy (`server/`) so credentials never reach
 the browser. Authentication is handled entirely in `server/cosmosClient.ts`, which supports two auth modes
@@ -30,19 +30,25 @@ the browser. Authentication is handled entirely in `server/cosmosClient.ts`, whi
 
 ## Folder Structure
 
+Everything lives at the **repo root** (the tree's root below *is* the repo root, not a nested `src/`).
+
 ```
-kleene-cosmos-db-data-explorer/
+<repo root>/
 ├── .env.example              # documented env vars, no secrets
 ├── .gitignore
 ├── package.json              # root scripts + all dependencies
+├── index.html                # Vite entry HTML (sets html.dark)
 ├── vite.config.ts            # Vite + /api proxy + @tailwindcss/vite plugin
-├── tailwind.config.ts        # darkMode: 'class', shadcn theme extension
-├── tsconfig.json             # strict mode, path alias @/ → src/
+├── vitest.config.ts          # test config (separate from vite.config.ts)
+├── tsconfig.json             # references app + node configs
+├── tsconfig.app.json         # strict mode, path alias @/ → src/
 ├── tsconfig.node.json
 ├── components.json           # shadcn/ui config
 ├── server/                   # Express backend proxy
 │   ├── index.ts              # Express app entry point
 │   ├── cosmosClient.ts       # CosmosClient factory (two auth modes)
+│   ├── readOnlyGuard.ts      # isMutatingQuery() — start-anchored guard
+│   ├── readOnlyGuard.test.ts
 │   ├── tsconfig.json
 │   └── routes/
 │       ├── databases.ts      # GET /api/databases
@@ -99,44 +105,39 @@ kleene-cosmos-db-data-explorer/
 
 ## Phase 0 — Project Scaffolding
 
-1. Scaffold Vite + React + TypeScript app inside `kleene-cosmos-db-data-explorer/`:
-
-   ```bash
-   npm create vite@latest . -- --template react-ts
-   ```
+1. Scaffold Vite + React + TypeScript at the repo root. Because the root is **non-empty** (planning
+   docs already exist), `npm create vite@latest .` refuses to run — create the project files
+   manually (or scaffold in a temp dir and move them in). App source goes in `src/`.
 
 2. Install frontend dependencies:
 
    ```bash
    npm install @tanstack/react-query zustand lucide-react highlight.js clsx tailwind-merge
-   npm install -D tailwindcss @tailwindcss/vite autoprefixer concurrently
+   npm install -D tailwindcss @tailwindcss/vite @vitejs/plugin-react vitest concurrently
    ```
 
-3. Bootstrap shadcn/ui:
-
-   ```bash
-   npx shadcn@latest init
-   ```
-
-   Choose: theme **slate**, dark mode **class**, CSS variables **yes**.
+3. Bootstrap shadcn/ui (**Tailwind v4** — `new-york`/`slate`, CSS variables). The v4 output writes
+   theme tokens into `src/index.css`; there is **no** `tailwind.config.ts`.
 
 4. Add required shadcn/ui components:
 
    ```bash
-   npx shadcn@latest add button textarea alert skeleton separator scroll-area tooltip
+   npx shadcn@latest add button textarea alert
    ```
 
 5. Install backend proxy dependencies:
 
    ```bash
    npm install express cors dotenv @azure/cosmos @azure/identity
-   npm install -D tsx @types/express @types/cors
+   npm install -D tsx @types/express @types/cors @types/node
    ```
 
-6. Configure `tailwind.config.ts` — set `darkMode: 'class'`.
+6. Configure the theme **CSS-first** in `src/index.css` (`@import "tailwindcss"` + `@theme` +
+   `@custom-variant dark`). Dark mode is forced by adding `.dark` to `<html>` in `main.tsx`.
 
 7. Configure `vite.config.ts` — add `@tailwindcss/vite` plugin, proxy `/api` → `http://localhost:3001`,
-   and `@/` path alias pointing to `src/`.
+   and `@/` path alias pointing to `src/`. Keep the Vitest config in a separate `vitest.config.ts`
+   (avoids a tsc type clash between Vite 6 and Vitest's bundled Vite).
 
 8. Create `.env.example` and `.gitignore`.
 
@@ -211,29 +212,30 @@ Uses `cosmosClient.database(dbId).containers.readAll().fetchAll()`.
 
 ```
 POST /api/databases/:dbId/containers/:containerId/query
-Body: { query: string, parameters?: SqlParameter[] }
-→ 200: { items: unknown[], count: number, requestCharge: number }
-→ 400: { error: string }  — if a mutating keyword is detected
+Body: { query: string, parameters?: SqlParameter[], maxItemCount?: number, continuationToken?: string }
+→ 200: { items: unknown[], count: number, requestCharge: number, continuationToken: string | null }
+→ 400: { error: string }  — if a mutating keyword is detected or the query is empty
 ```
 
-- **Read-only enforcement**: rejects queries whose trimmed text starts (case-insensitively) with
-  `INSERT`, `DELETE`, `UPSERT`, or `REPLACE` — returns HTTP 400.
-- Iterates `container.items.query(spec).getAsyncIterator()` collecting all pages.
-- Accumulates `requestCharge` from each `FeedResponse`.
-- Returns all collected items with total count.
+- **Read-only enforcement** (`server/readOnlyGuard.ts` → `isMutatingQuery`): rejects queries whose
+  text — after trimming whitespace and stripping leading SQL comments — *starts* (case-insensitively)
+  with `INSERT`, `DELETE`, `UPSERT`, `REPLACE`, `UPDATE`, or `MERGE` → HTTP 400. Start-anchoring
+  avoids false positives on SELECTs that merely mention those words in string literals/field names.
+- Fetches **one page** via `fetchNext()` using `maxItemCount` (default 100) and the optional
+  `continuationToken`, returning that page's `requestCharge` and the next `continuationToken`
+  (`null` when exhausted). The client appends pages and accumulates RU.
 
 ```typescript
 const container = cosmosClient.database(dbId).container(containerId);
-const iterator = container.items.query({ query, parameters }).getAsyncIterator();
+const options = { maxItemCount: maxItemCount ?? 100, continuationToken };
+const page = await container.items.query({ query, parameters }, options).fetchNext();
 
-const items: unknown[] = [];
-let requestCharge = 0;
-for await (const page of iterator) {
-  items.push(...page.resources);
-  requestCharge += page.requestCharge;
-}
-
-return { items, count: items.length, requestCharge };
+return {
+  items: page.resources,
+  count: page.resources.length,
+  requestCharge: page.requestCharge,
+  continuationToken: page.hasMoreResults ? page.continuationToken : null,
+};
 ```
 
 ### `server/index.ts`
@@ -262,6 +264,7 @@ interface QueryResult {
   items: unknown[];
   count: number;
   requestCharge: number;
+  continuationToken: string | null;
 }
 interface QueryError {
   message: string;
@@ -293,7 +296,13 @@ Thin `fetch` wrappers — no Cosmos SDK in the browser:
 ```typescript
 fetchDatabases(): Promise<DatabaseItem[]>
 fetchContainers(dbId: string): Promise<ContainerItem[]>
-executeQuery(dbId: string, containerId: string, query: string): Promise<QueryResult>
+executeQuery(
+  dbId: string,
+  containerId: string,
+  query: string,
+  maxItemCount?: number,
+  continuationToken?: string,
+): Promise<QueryResult>
 ```
 
 - Read base URL from `import.meta.env.VITE_API_BASE_URL` (defaults to `/api` via Vite proxy).
@@ -329,10 +338,17 @@ Actions
   closeTab(id)                   — remove tab; activate adjacent tab or null
   setActiveTab(id)
   updateQuery(tabId, query)
-  setTabResults(tabId, results)
-  setTabError(tabId, error)
   setTabLoading(tabId, isLoading)
+  setTabError(tabId, error)
+  applyQueryResult(tabId, result, mode)
+                                 — mode 'replace' (fresh run): results become this page, RU resets
+                                 — mode 'append'  (load more): items appended, RU accumulated,
+                                   continuation token advanced
 ```
+
+`TabState.results` (`QueryResult | null`) holds the cumulative items, running `requestCharge`, and the
+next-page `continuationToken` (null when exhausted). Re-running a query uses `replace` (resetting
+items/RU); *Load more* uses `append`.
 
 `openTab` generates `id = "${dbId}__${containerId}"`. If a tab with that id already exists it simply
 activates it; otherwise it appends a new `TabState`.
@@ -452,8 +468,9 @@ server: {
   "dev:server": "tsx watch server/index.ts",
   "dev:client": "vite",
   "dev": "concurrently \"npm:dev:server\" \"npm:dev:client\"",
-  "build": "tsc && vite build",
-  "preview": "vite preview"
+  "build": "tsc -b && vite build",
+  "preview": "vite preview",
+  "test": "vitest run"
 }
 ```
 
@@ -478,10 +495,12 @@ server/dist/
 7. Multiple tabs can be open simultaneously; switching between them preserves each tab's query text and results independently.
 8. Closing a tab removes it; closing the last tab shows `EmptyState` in the main area.
 9. A query error displays `ErrorBanner` with the message and HTTP code.
-10. Queries starting with `INSERT`, `DELETE`, `UPSERT`, or `REPLACE` receive HTTP 400 from the proxy.
-11. The copy-to-clipboard button writes the full results JSON to the clipboard.
+10. Queries whose (comment-stripped) text starts with `INSERT`, `DELETE`, `UPSERT`, `REPLACE`, `UPDATE`, or `MERGE` receive HTTP 400; SELECTs that merely mention those words are allowed.
+11. The copy-to-clipboard button writes the full (loaded) results JSON to the clipboard.
 12. Dark mode is active by default on load with no white flash.
 13. Both `connection-string` and `azure-cli` auth modes work when configured in `.env`.
+14. After a query with more than one page, *Load more* appends the next page and the status bar's item count + RU accumulate; it disappears once the continuation token is `null`.
+15. `npm test` passes (read-only guard, tab store append/reset + idempotency, api error mapping).
 
 ---
 
@@ -495,14 +514,15 @@ server/dist/
 | Zustand for client state                      | Lightweight, zero boilerplate, integrates cleanly with React Query          |
 | Plain `<textarea>` for query editor (v1)      | Keeps initial bundle lean; Monaco Editor is a future enhancement            |
 | Dark mode only, no toggle (v1)                | Simplifies scope; theme switching is a future enhancement                   |
-| All query pages collected server-side         | Simplifies v1 result handling; pagination UI is a future enhancement        |
+| Append-style pagination (continuation tokens) | One page (100 items) per request; *Load more* appends and accumulates RU     |
 
 ---
 
 ## Future Enhancements (out of v1 scope)
 
 1. **Monaco Editor** — SQL syntax highlighting and IntelliSense in the query editor.
-2. **Client-side pagination** — continuation token support, "Load more" / page navigation in results.
+2. **Prev/Next page navigation & result virtualization** — append-style *Load more* pagination is
+   already in v1; classic paging and virtualized rendering of very large result sets are future work.
 3. **Document CRUD** — create, edit, and delete individual documents directly from the UI.
 4. **Light mode / theme toggle** — user-controlled colour scheme preference.
 5. **Query history** — persist recently executed queries per container across sessions.
@@ -522,7 +542,7 @@ All Cosmos connectivity is self-contained in the Express proxy — no external p
 | Env validation       | Required vars checked on startup; fail fast with a clear message                                    |
 | List databases       | `cosmosClient.databases.readAll().fetchAll()`                                                       |
 | List containers      | `cosmosClient.database(dbId).containers.readAll().fetchAll()`                                        |
-| Execute query        | `container.items.query(spec).getAsyncIterator()`; accumulate `requestCharge` across pages           |
-| Read-only guard      | Reject `INSERT` / `DELETE` / `UPSERT` / `REPLACE` with HTTP 400                                      |
+| Execute query        | `container.items.query(spec, { maxItemCount, continuationToken }).fetchNext()`; one page per request |
+| Read-only guard      | `isMutatingQuery` rejects start-anchored `INSERT`/`DELETE`/`UPSERT`/`REPLACE`/`UPDATE`/`MERGE` → 400  |
 
 Pinned dependency versions: `@azure/cosmos ^4.3.0`, `@azure/identity ^4.10.0`, `dotenv ^16.5.0`.

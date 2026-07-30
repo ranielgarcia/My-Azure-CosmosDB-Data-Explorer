@@ -4,8 +4,10 @@ Guidance for AI coding agents working in this repository.
 
 ## Project status
 
-**Greenfield — not yet scaffolded.** The workspace currently contains only planning
-documents. The application will be built inside `kleene-cosmos-db-data-explorer/`.
+**Scaffolded.** The application lives at the **repo root**: the React app source is in `src/`, the
+Express proxy is in `server/`, and all config (`package.json`, `vite.config.ts`, `tsconfig*.json`)
+sits at the root. (Earlier drafts referenced a `kleene-cosmos-db-data-explorer/` subfolder; that was
+dropped in favour of the repo root.)
 
 **Read these first (authoritative spec):**
 
@@ -31,14 +33,19 @@ TanStack Query v5 · Zustand · Express + `tsx` proxy · `@azure/cosmos` · `@az
 
 - **Cosmos SDK is backend-only.** Never import `@azure/cosmos` or `@azure/identity` in `src/`. The
   browser talks only to `/api/*` via `src/services/cosmos/api.ts`. Credentials must never reach the client.
-- **Read-only enforcement lives in the proxy.** `POST /api/.../query` rejects queries whose trimmed
-  text starts (case-insensitively) with `INSERT`, `DELETE`, `UPSERT`, or `REPLACE` → HTTP 400.
+- **Read-only enforcement lives in the proxy.** `POST /api/.../query` rejects queries whose text —
+  after trimming whitespace and stripping leading SQL comments — *starts* (case-insensitively) with
+  `INSERT`, `DELETE`, `UPSERT`, `REPLACE`, `UPDATE`, or `MERGE` → HTTP 400. Matching only at the start
+  avoids false positives on SELECTs that mention those words in string literals or field names. Pair
+  it operationally with a read-only key / data-plane RBAC role. Logic lives in `server/readOnlyGuard.ts`.
 - **Two auth modes via `COSMOS_AUTH_MODE`:** `connection-string` (uses `COSMOS_KEY`) or `azure-cli`
   (uses `DefaultAzureCredential`). Validate required env vars on server startup and fail with a clear message.
 - **Tab identity is `` `${databaseId}__${containerId}` ``.** `openTab` is idempotent — activate an
   existing tab instead of creating a duplicate. New tabs default the query to `SELECT * FROM c`.
-- **Dark mode only in v1** (no toggle); set `html.dark` before paint to avoid a white flash.
-- **Path alias `@/` → `src/`** (configured in `vite.config.ts` and `tsconfig.json`).
+- **Dark mode only in v1** (no toggle); set `html.dark` before paint to avoid a white flash. Theme is
+  **Tailwind v4 CSS-first** (`@import "tailwindcss"` + `@theme` + `@custom-variant dark` in
+  `src/index.css`); there is no v3-style `tailwind.config.ts`.
+- **Path alias `@/` → `src/`** (configured in `vite.config.ts` and `tsconfig.app.json`).
 
 ## Layout & ports
 
@@ -48,12 +55,13 @@ TanStack Query v5 · Zustand · Express + `tsx` proxy · `@azure/cosmos` · `@az
 
 ## Dev commands
 
-Run from inside `kleene-cosmos-db-data-explorer/`:
+Run from the **repo root**:
 
 - `npm run dev` — starts proxy + client together via `concurrently`.
 - `npm run dev:server` / `npm run dev:client` — run each independently.
-- `npm run build` — `tsc && vite build`.
+- `npm run build` — `tsc -b && vite build`.
 - `npm run preview` — preview the production build.
+- `npm test` — Vitest unit tests (read-only guard, tab store, api error mapping).
 
 ## Security
 
@@ -61,10 +69,18 @@ Run from inside `kleene-cosmos-db-data-explorer/`:
 - Never log or return raw Cosmos credentials in responses or error messages.
 - The read-only query guard is a safety control — do not weaken or bypass it.
 
+## Query results & pagination
+
+Queries are fetched **one page at a time** (`maxItemCount` 100) using continuation tokens. The proxy
+returns `{ items, count, requestCharge, continuationToken | null }`. The client **appends** each page
+(infinite-scroll style) and accumulates the RU charge; *Load more* is shown while a continuation
+token exists and hidden once it is `null`. Re-running a query **resets** the accumulated items/token.
+
 ## Out of scope for v1
 
-Monaco editor, result pagination/continuation tokens, document CRUD, light-mode toggle, query
-history, and query cancellation. See the "Future Enhancements" section of
+Monaco editor, Prev/Next page navigation, result virtualization, document CRUD, light-mode toggle,
+query history, and query cancellation. (Basic append-style pagination via continuation tokens **is**
+in scope.) See the "Future Enhancements" section of
 [implementation-plan.md](implementation-plan.md) before adding any of these.
 
 ## Cosmos connectivity
@@ -77,5 +93,6 @@ self-contained in `server/cosmosClient.ts`:
 - Required env vars are validated on server startup; a missing value fails fast with a clear message.
 - Databases are listed via `cosmosClient.databases.readAll()`, containers via
   `cosmosClient.database(dbId).containers.readAll()`, and queries via
-  `container.items.query(spec).getAsyncIterator()` (accumulating `requestCharge` across pages).
+  `container.items.query(spec, { maxItemCount, continuationToken }).fetchNext()` — one page per
+  request, returning that page's `requestCharge` and next `continuationToken`.
 - Pinned versions: `@azure/cosmos ^4.3.0`, `@azure/identity ^4.10.0`, `dotenv ^16.5.0`.

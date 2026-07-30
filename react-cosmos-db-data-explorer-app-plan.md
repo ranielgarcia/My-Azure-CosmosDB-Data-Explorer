@@ -1,6 +1,7 @@
 # React Cosmos DB Data Explorer Application Plan
 
-Create a comprehensive implementation plan for a new React.js application inside the `/kleene-cosmos-db-data-explorer` folder.
+Create a comprehensive implementation plan for a React.js application built at the **repository root**
+(React app source in `src/`, Express proxy in `server/`, config at the root).
 
 ## Objective
 
@@ -81,7 +82,8 @@ Display query results below the query editor:
 
 - Format results as pretty-printed JSON.
 - Use a dedicated results panel.
-- Support large result sets.
+- Support large result sets via **append-style pagination** (continuation tokens): fetch 100 items
+  per page and a *Load more* button appends the next page, accumulating the RU charge.
 - Enable scrolling.
 - Use syntax highlighting if practical.
 - Include copy-to-clipboard functionality.
