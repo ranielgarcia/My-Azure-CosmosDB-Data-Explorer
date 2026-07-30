@@ -1,0 +1,45 @@
+# Dependencies
+node_modules/
+kleene-cosmos-db-data-explorer/node_modules/
+
+# Build outputs
+dist/
+build/
+kleene-cosmos-db-data-explorer/dist/
+server/dist/
+
+# Vite cache
+.vite/
+*.local
+
+# TypeScript incremental build info
+*.tsbuildinfo
+
+# Environment — secrets must never be committed
+.env
+.env.*
+!.env.example
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# OS artifacts
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Editor configs
+.idea/
+*.swp
+*.swo
+
+# Azure CLI credential cache
+.azure/
+
+# Test coverage
+coverage/
