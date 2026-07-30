@@ -14,12 +14,12 @@ export function DatabaseNode({ database }: { database: DatabaseItem }) {
       <button
         type="button"
         onClick={() => toggleDatabase(database.id)}
-        className="flex w-full items-center gap-1.5 px-2 py-1.5 text-left text-sm hover:bg-accent hover:text-accent-foreground"
+        className="flex w-full items-center gap-1.5 rounded-md px-2 py-1.5 text-left text-sm font-medium text-foreground/90 transition-colors hover:bg-accent hover:text-accent-foreground"
       >
         {expanded ? (
-          <ChevronDown className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
+          <ChevronDown className="h-3.5 w-3.5 shrink-0 text-muted-foreground transition-transform" />
         ) : (
-          <ChevronRight className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
+          <ChevronRight className="h-3.5 w-3.5 shrink-0 text-muted-foreground transition-transform" />
         )}
         <Database className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
         <span className="truncate">{database.id}</span>

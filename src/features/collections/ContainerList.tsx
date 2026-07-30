@@ -34,7 +34,7 @@ export function ContainerList({ dbId }: { dbId: string }) {
   }
 
   return (
-    <ul>
+    <ul className="mt-0.5 space-y-0.5">
       {containers.map((container) => (
         <ContainerItemRow
           key={container.id}

@@ -2,9 +2,9 @@ import * as React from "react";
 import { cn } from "@/lib/utils";
 
 const variantClasses = {
-  default: "bg-background text-foreground",
+  default: "bg-card text-foreground",
   destructive:
-    "border-destructive/50 text-destructive [&>svg]:text-destructive",
+    "border-destructive/40 bg-destructive/5 text-destructive [&>svg]:text-destructive",
 } as const;
 
 export interface AlertProps extends React.HTMLAttributes<HTMLDivElement> {

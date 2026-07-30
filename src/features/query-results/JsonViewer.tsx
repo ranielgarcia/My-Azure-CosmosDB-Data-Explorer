@@ -41,7 +41,7 @@ export function JsonViewer({ data }: { data: unknown }) {
         )}
         {copied ? "Copied" : "Copy"}
       </Button>
-      <pre className="h-full overflow-auto p-4 text-xs leading-relaxed">
+      <pre className="h-full overflow-auto p-4 font-mono text-[12.5px] leading-relaxed">
         <code ref={codeRef} className="language-json" />
       </pre>
     </div>

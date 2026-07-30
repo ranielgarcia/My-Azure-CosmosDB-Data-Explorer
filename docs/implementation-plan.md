@@ -37,7 +37,7 @@ Everything lives at the **repo root** (the tree's root below *is* the repo root,
 ├── .env.example              # documented env vars, no secrets
 ├── .gitignore
 ├── package.json              # root scripts + all dependencies
-├── index.html                # Vite entry HTML (sets html.dark)
+├── index.html                # Vite entry HTML (inline no-flash theme script)
 ├── vite.config.ts            # Vite + /api proxy + @tailwindcss/vite plugin
 ├── vitest.config.ts          # test config (separate from vite.config.ts)
 ├── tsconfig.json             # references app + node configs
@@ -55,7 +55,7 @@ Everything lives at the **repo root** (the tree's root below *is* the repo root,
 │       ├── containers.ts     # GET /api/databases/:dbId/containers
 │       └── query.ts          # POST /api/databases/:dbId/containers/:id/query
 └── src/
-    ├── main.tsx              # mount App, set html.dark
+    ├── main.tsx              # mount App, load fonts, init theme store
     ├── App.tsx               # QueryClientProvider + AppLayout
     ├── lib/
     │   └── queryClient.ts    # QueryClient singleton
@@ -513,7 +513,7 @@ server/dist/
 | Both `connection-string` and `azure-cli` auth | Covers local dev (key) and Azure-hosted (managed identity / CLI) scenarios |
 | Zustand for client state                      | Lightweight, zero boilerplate, integrates cleanly with React Query          |
 | Plain `<textarea>` for query editor (v1)      | Keeps initial bundle lean; Monaco Editor is a future enhancement            |
-| Dark mode only, no toggle (v1)                | Simplifies scope; theme switching is a future enhancement                   |
+| Light + dark themes with persisted toggle     | System default (`prefers-color-scheme`); choice saved to `localStorage` (`cosmos-theme`) |
 | Append-style pagination (continuation tokens) | One page (100 items) per request; *Load more* appends and accumulates RU     |
 
 ---

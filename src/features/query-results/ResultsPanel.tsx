@@ -62,7 +62,7 @@ export function ResultsPanel({
         <JsonViewer data={results.items} />
       </div>
       {results.continuationToken ? (
-        <div className="flex shrink-0 justify-center border-t bg-muted/20 py-2">
+        <div className="flex shrink-0 justify-center border-t border-border bg-muted/30 py-2">
           <Button
             variant="outline"
             size="sm"

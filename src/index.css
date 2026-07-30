@@ -3,49 +3,58 @@
 @custom-variant dark (&:is(.dark *));
 
 :root {
-  --radius: 0.5rem;
+  --radius: 0.625rem;
 
-  --background: hsl(0 0% 100%);
-  --foreground: hsl(222.2 84% 4.9%);
+  /* Light — refined neutral slate */
+  --background: hsl(210 40% 98.5%);
+  --foreground: hsl(222 47% 11%);
   --card: hsl(0 0% 100%);
-  --card-foreground: hsl(222.2 84% 4.9%);
+  --card-foreground: hsl(222 47% 11%);
   --popover: hsl(0 0% 100%);
-  --popover-foreground: hsl(222.2 84% 4.9%);
-  --primary: hsl(222.2 47.4% 11.2%);
+  --popover-foreground: hsl(222 47% 11%);
+  --primary: hsl(222 47% 11%);
   --primary-foreground: hsl(210 40% 98%);
-  --secondary: hsl(210 40% 96.1%);
-  --secondary-foreground: hsl(222.2 47.4% 11.2%);
-  --muted: hsl(210 40% 96.1%);
-  --muted-foreground: hsl(215.4 16.3% 46.9%);
-  --accent: hsl(210 40% 96.1%);
-  --accent-foreground: hsl(222.2 47.4% 11.2%);
-  --destructive: hsl(0 84.2% 60.2%);
+  --secondary: hsl(210 40% 96%);
+  --secondary-foreground: hsl(222 47% 11%);
+  --muted: hsl(210 40% 96%);
+  --muted-foreground: hsl(215 16% 47%);
+  --accent: hsl(214 32% 93%);
+  --accent-foreground: hsl(222 47% 11%);
+  --destructive: hsl(0 72% 51%);
   --destructive-foreground: hsl(210 40% 98%);
-  --border: hsl(214.3 31.8% 91.4%);
-  --input: hsl(214.3 31.8% 91.4%);
-  --ring: hsl(222.2 84% 4.9%);
+  --border: hsl(214 32% 91%);
+  --input: hsl(214 32% 89%);
+  --ring: hsl(222 47% 40%);
+
+  /* Sidebar surface (slightly recessed from the main canvas) */
+  --sidebar: hsl(210 40% 97%);
+  --sidebar-foreground: hsl(222 47% 11%);
 }
 
 .dark {
-  --background: hsl(222.2 84% 4.9%);
+  /* Dark — deep, low-glare neutral slate */
+  --background: hsl(222 47% 6%);
   --foreground: hsl(210 40% 98%);
-  --card: hsl(222.2 84% 4.9%);
+  --card: hsl(222 40% 8%);
   --card-foreground: hsl(210 40% 98%);
-  --popover: hsl(222.2 84% 4.9%);
+  --popover: hsl(222 40% 9%);
   --popover-foreground: hsl(210 40% 98%);
   --primary: hsl(210 40% 98%);
-  --primary-foreground: hsl(222.2 47.4% 11.2%);
-  --secondary: hsl(217.2 32.6% 17.5%);
+  --primary-foreground: hsl(222 47% 11%);
+  --secondary: hsl(217 33% 15%);
   --secondary-foreground: hsl(210 40% 98%);
-  --muted: hsl(217.2 32.6% 17.5%);
-  --muted-foreground: hsl(215 20.2% 65.1%);
-  --accent: hsl(217.2 32.6% 17.5%);
+  --muted: hsl(217 33% 14%);
+  --muted-foreground: hsl(216 20% 62%);
+  --accent: hsl(217 33% 18%);
   --accent-foreground: hsl(210 40% 98%);
-  --destructive: hsl(0 62.8% 30.6%);
+  --destructive: hsl(0 63% 45%);
   --destructive-foreground: hsl(210 40% 98%);
-  --border: hsl(217.2 32.6% 17.5%);
-  --input: hsl(217.2 32.6% 17.5%);
-  --ring: hsl(212.7 26.8% 83.9%);
+  --border: hsl(217 33% 16%);
+  --input: hsl(217 33% 20%);
+  --ring: hsl(213 27% 70%);
+
+  --sidebar: hsl(222 47% 7%);
+  --sidebar-foreground: hsl(210 40% 98%);
 }
 
 @theme inline {
@@ -68,45 +77,105 @@
   --color-border: var(--border);
   --color-input: var(--input);
   --color-ring: var(--ring);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
 
   --radius-lg: var(--radius);
   --radius-md: calc(var(--radius) - 2px);
   --radius-sm: calc(var(--radius) - 4px);
+
+  --font-sans:
+    "Inter Variable", ui-sans-serif, system-ui, -apple-system, "Segoe UI",
+    Roboto, sans-serif;
+  --font-mono:
+    "JetBrains Mono Variable", ui-monospace, "SFMono-Regular", "Menlo",
+    "Consolas", monospace;
 }
 
 * {
   border-color: var(--border);
 }
 
+html {
+  color-scheme: light dark;
+}
+
 body {
   margin: 0;
   background-color: var(--background);
   color: var(--foreground);
-  font-family:
-    ui-sans-serif,
-    system-ui,
-    -apple-system,
-    "Segoe UI",
-    Roboto,
-    sans-serif;
+  font-family: var(--font-sans);
+  font-size: 13.5px;
+  line-height: 1.5;
+  letter-spacing: -0.006em;
+  font-feature-settings: "cv11", "ss01";
   -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
 }
 
-/* highlight.js dark theme tokens scoped to JSON viewer */
+/* Smoothly cross-fade colors when the theme flips. */
+body,
+aside,
+main,
+header,
+button,
+[role="alert"] {
+  transition:
+    background-color 0.2s ease,
+    border-color 0.2s ease,
+    color 0.2s ease;
+}
+
+/* Refined scrollbars that respect the active theme. */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--border) transparent;
+}
+*::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+*::-webkit-scrollbar-thumb {
+  background-color: var(--border);
+  border-radius: 9999px;
+  border: 2px solid transparent;
+  background-clip: content-box;
+}
+*::-webkit-scrollbar-thumb:hover {
+  background-color: var(--muted-foreground);
+}
+
+/* highlight.js tokens — tuned for the light theme by default … */
 .hljs {
   color: var(--foreground);
   background: transparent;
 }
 .hljs-attr {
-  color: hsl(210 70% 72%);
+  color: hsl(221 70% 45%);
 }
 .hljs-string {
-  color: hsl(95 38% 62%);
+  color: hsl(142 45% 33%);
 }
 .hljs-number {
-  color: hsl(29 54% 61%);
+  color: hsl(24 74% 42%);
 }
 .hljs-literal,
 .hljs-keyword {
-  color: hsl(286 60% 67%);
+  color: hsl(280 55% 48%);
+}
+
+/* … and brightened for dark mode. */
+.dark .hljs-attr {
+  color: hsl(210 75% 74%);
+}
+.dark .hljs-string {
+  color: hsl(95 42% 64%);
+}
+.dark .hljs-number {
+  color: hsl(29 58% 64%);
+}
+.dark .hljs-literal,
+.dark .hljs-keyword {
+  color: hsl(286 62% 70%);
 }

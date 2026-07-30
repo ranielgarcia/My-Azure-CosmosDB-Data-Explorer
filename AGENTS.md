@@ -42,8 +42,12 @@ TanStack Query v5 · Zustand · Express + `tsx` proxy · `@azure/cosmos` · `@az
   (uses `DefaultAzureCredential`). Validate required env vars on server startup and fail with a clear message.
 - **Tab identity is `` `${databaseId}__${containerId}` ``.** `openTab` is idempotent — activate an
   existing tab instead of creating a duplicate. New tabs default the query to `SELECT * FROM c`.
-- **Dark mode only in v1** (no toggle); set `html.dark` before paint to avoid a white flash. Theme is
-  **Tailwind v4 CSS-first** (`@import "tailwindcss"` + `@theme` + `@custom-variant dark` in
+- **Light & dark themes with a manual toggle.** Default follows the OS (`prefers-color-scheme`);
+  the user's choice persists to `localStorage` (`cosmos-theme`). An inline script in `index.html`
+  sets the `html.dark` class before paint to avoid a flash; `src/store/themeStore.ts` (Zustand)
+  owns the runtime state and the `<ThemeToggle>` lives in the left-sidebar header. Fonts are
+  **Inter** (UI) and **JetBrains Mono** (code), bundled offline via `@fontsource-variable/*`. Theme
+  is **Tailwind v4 CSS-first** (`@import "tailwindcss"` + `@theme` + `@custom-variant dark` in
   `src/index.css`); there is no v3-style `tailwind.config.ts`.
 - **Path alias `@/` → `src/`** (configured in `vite.config.ts` and `tsconfig.app.json`).
 
@@ -78,9 +82,9 @@ token exists and hidden once it is `null`. Re-running a query **resets** the acc
 
 ## Out of scope for v1
 
-Monaco editor, Prev/Next page navigation, result virtualization, document CRUD, light-mode toggle,
+Monaco editor, Prev/Next page navigation, result virtualization, document CRUD,
 query history, and query cancellation. (Basic append-style pagination via continuation tokens **is**
-in scope.) See the "Future Enhancements" section of
+in scope. Light/dark theming with a persisted toggle is now **in** scope.) See the "Future Enhancements" section of
 [implementation-plan.md](implementation-plan.md) before adding any of these.
 
 ## Cosmos connectivity

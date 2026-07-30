@@ -11,17 +11,17 @@ export function TabHandle({ tab }: { tab: TabState }) {
   return (
     <div
       className={cn(
-        "group flex max-w-[16rem] items-center border-r border-b-2 text-sm",
+        "group flex max-w-[16rem] items-center rounded-t-md border border-b-0 text-sm transition-colors",
         isActive
-          ? "border-b-primary bg-background text-foreground"
-          : "border-b-transparent text-muted-foreground hover:bg-accent/50",
+          ? "border-border bg-background text-foreground shadow-sm"
+          : "border-transparent bg-transparent text-muted-foreground hover:bg-accent/60 hover:text-foreground",
       )}
     >
       <button
         type="button"
         aria-current={isActive ? "page" : undefined}
         onClick={() => setActiveTab(tab.id)}
-        className="max-w-52 truncate py-2 pl-3 pr-1 text-left"
+        className="max-w-52 truncate py-2 pl-3 pr-1 text-left font-medium"
         title={tab.label}
       >
         {tab.label}
@@ -29,8 +29,9 @@ export function TabHandle({ tab }: { tab: TabState }) {
       <button
         type="button"
         onClick={() => closeTab(tab.id)}
-        className="mr-1.5 rounded p-0.5 text-muted-foreground opacity-60 hover:bg-accent hover:opacity-100"
+        className="mr-1.5 rounded-md p-0.5 text-muted-foreground opacity-60 transition-opacity hover:bg-accent hover:opacity-100"
         title="Close tab"
+        aria-label={`Close ${tab.label}`}
       >
         <X className="h-3.5 w-3.5" />
       </button>

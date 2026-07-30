@@ -9,7 +9,7 @@ export function MainArea() {
   const activeTabId = useTabStore((s) => s.activeTabId);
 
   return (
-    <main className="flex flex-1 flex-col overflow-hidden">
+    <main className="flex flex-1 flex-col overflow-hidden bg-background">
       {tabs.length > 0 ? (
         <>
           <TabBar />

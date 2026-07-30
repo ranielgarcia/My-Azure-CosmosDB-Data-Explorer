@@ -1,10 +1,14 @@
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
+import "@fontsource-variable/inter";
+import "@fontsource-variable/jetbrains-mono";
 import App from "./App.tsx";
 import "./index.css";
+import { initTheme } from "./store/themeStore";
 
-// Enforce dark mode before paint to avoid a white flash.
-document.documentElement.classList.add("dark");
+// Sync the theme store with the class the inline <head> script already applied,
+// and start listening for system preference changes.
+initTheme();
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>

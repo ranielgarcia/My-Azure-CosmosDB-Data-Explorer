@@ -19,7 +19,7 @@ export function QueryEditor({ value, onChange, onRun }: QueryEditorProps) {
       }}
       spellCheck={false}
       placeholder="SELECT * FROM c"
-      className="h-full resize-none rounded-none border-0 font-mono text-sm leading-relaxed shadow-none focus-visible:ring-0"
+      className="h-full resize-none rounded-none border-0 bg-card/30 px-4 py-3 font-mono text-[13px] leading-relaxed shadow-none focus-visible:ring-0 focus-visible:ring-offset-0"
     />
   );
 }
