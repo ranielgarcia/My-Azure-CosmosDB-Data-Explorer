@@ -25,7 +25,7 @@ export function formatUtcInTimeZone(
   if (Number.isNaN(date.getTime())) return null;
 
   try {
-    const parts = new Intl.DateTimeFormat("en-US", {
+    const parts = new Intl.DateTimeFormat("en-AU", {
       timeZone,
       month: "long",
       day: "numeric",

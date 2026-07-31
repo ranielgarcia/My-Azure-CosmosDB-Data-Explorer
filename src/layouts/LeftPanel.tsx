@@ -1,12 +1,18 @@
+import { useRef } from "react";
 import { Database, RefreshCw, TriangleAlert } from "lucide-react";
 import { useDatabases } from "@/hooks/useDatabases";
 import { useRefreshStores } from "@/hooks/useRefreshStores";
 import { DatabaseTree } from "@/features/databases/DatabaseTree";
 import { StorePanel } from "@/features/stores/StorePanel";
 import { LoadingSpinner } from "@/components/LoadingSpinner";
+import { ResizeHandle } from "@/components/ResizeHandle";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { Button } from "@/components/ui/button";
+import { MIN_STORE_PANEL_HEIGHT, useLayoutStore } from "@/store/layoutStore";
 import type { QueryError } from "@/types/cosmos";
+
+/** Minimum height reserved for the databases region above the split. */
+const MIN_DATABASES_HEIGHT = 120;
 
 export function LeftPanel() {
   const {
@@ -19,6 +25,12 @@ export function LeftPanel() {
   } = useDatabases();
   const refreshStores = useRefreshStores();
 
+  const sidebarWidth = useLayoutStore((s) => s.sidebarWidth);
+  const storePanelHeight = useLayoutStore((s) => s.storePanelHeight);
+  const setStorePanelHeight = useLayoutStore((s) => s.setStorePanelHeight);
+  const resetStorePanelHeight = useLayoutStore((s) => s.resetStorePanelHeight);
+  const asideRef = useRef<HTMLElement>(null);
+
   const isRefreshing = isFetching || refreshStores.isPending;
 
   const handleRefresh = () => {
@@ -26,8 +38,23 @@ export function LeftPanel() {
     refreshStores.mutate();
   };
 
+  // Dragging the divider up grows the store panel; clamp so the databases
+  // region keeps a usable minimum height.
+  const handleSplitDelta = (dy: number) => {
+    const asideHeight = asideRef.current?.clientHeight ?? 0;
+    const max = Math.max(
+      MIN_STORE_PANEL_HEIGHT,
+      asideHeight - MIN_DATABASES_HEIGHT,
+    );
+    setStorePanelHeight(storePanelHeight - dy, max);
+  };
+
   return (
-    <aside className="flex w-64 shrink-0 flex-col border-r border-border bg-sidebar text-sidebar-foreground">
+    <aside
+      ref={asideRef}
+      style={{ width: sidebarWidth }}
+      className="flex shrink-0 flex-col border-r border-border bg-sidebar text-sidebar-foreground"
+    >
       <div className="flex items-center justify-between gap-2 border-b border-border px-3 py-2.5">
         <div className="flex min-w-0 items-center gap-2">
           <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-primary text-primary-foreground shadow-sm">
@@ -93,7 +120,17 @@ export function LeftPanel() {
         )}
       </div>
 
-      <div className="flex min-h-0 shrink-0 basis-1/2 flex-col border-t border-border">
+      <ResizeHandle
+        orientation="horizontal"
+        ariaLabel="Resize store details panel"
+        onDelta={handleSplitDelta}
+        onReset={resetStorePanelHeight}
+      />
+
+      <div
+        style={{ height: storePanelHeight }}
+        className="flex min-h-0 shrink-0 flex-col"
+      >
         <StorePanel />
       </div>
     </aside>
