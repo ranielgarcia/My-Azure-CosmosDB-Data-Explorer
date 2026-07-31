@@ -1,7 +1,8 @@
 import { useQuery } from "@tanstack/react-query";
 import { fetchStore } from "@/services/tables";
 
-export function useStore(partitionKey: string | null, rowKey: string | null) {
+export function useStore(rowKey: string | null) {
+  const partitionKey = "SiteLocation";
   return useQuery({
     queryKey: ["store", partitionKey, rowKey],
     queryFn: () => fetchStore(partitionKey!, rowKey!),

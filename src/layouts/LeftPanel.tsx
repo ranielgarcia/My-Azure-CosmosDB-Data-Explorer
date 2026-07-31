@@ -1,6 +1,7 @@
 import { Database, RefreshCw, TriangleAlert } from "lucide-react";
 import { useDatabases } from "@/hooks/useDatabases";
 import { DatabaseTree } from "@/features/databases/DatabaseTree";
+import { StorePanel } from "@/features/stores/StorePanel";
 import { LoadingSpinner } from "@/components/LoadingSpinner";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { Button } from "@/components/ui/button";
@@ -55,7 +56,7 @@ export function LeftPanel() {
         </span>
       </div>
 
-      <div className="flex-1 overflow-y-auto px-2 pb-2">
+      <div className="min-h-0 flex-1 overflow-y-auto px-2 pb-2">
         {isLoading ? (
           <div className="flex items-center gap-2 px-1 py-2 text-sm text-muted-foreground">
             <LoadingSpinner />
@@ -81,6 +82,10 @@ export function LeftPanel() {
             No databases found.
           </p>
         )}
+      </div>
+
+      <div className="flex min-h-0 shrink-0 basis-1/2 flex-col border-t border-border">
+        <StorePanel />
       </div>
     </aside>
   );
