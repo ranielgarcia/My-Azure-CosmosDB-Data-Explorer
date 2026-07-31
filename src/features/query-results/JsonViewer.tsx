@@ -20,11 +20,13 @@ function annotateDates(root: HTMLElement, timeZone: string): void {
     const raw = span.textContent?.replace(/^"|"$/g, "") ?? "";
     const label = formatUtcInTimeZone(raw, timeZone);
     if (!label) return;
+    const userTimeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+    const localTimeZoneLabel = formatUtcInTimeZone(raw, userTimeZone);
 
     const note = document.createElement("span");
     note.className = "ml-2 select-none italic text-muted-foreground/60";
     note.setAttribute("data-date-annotation", "");
-    note.textContent = label;
+    note.textContent = `${label}${localTimeZoneLabel ? ` (Local: ${localTimeZoneLabel})` : ""}`;
     span.after(note);
   });
 }
