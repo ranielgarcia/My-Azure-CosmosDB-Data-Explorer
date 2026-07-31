@@ -8,6 +8,7 @@ import { databasesRouter } from "./routes/databases.js";
 import { containersRouter } from "./routes/containers.js";
 import { queryRouter } from "./routes/query.js";
 import { tabsRouter } from "./routes/tabs.js";
+import { siteLocationRouter } from "./routes/siteLocation.js";
 
 const PORT = Number(process.env.PORT ?? 3001);
 
@@ -26,6 +27,7 @@ app.use("/api", databasesRouter);
 app.use("/api", containersRouter);
 app.use("/api", queryRouter);
 app.use("/api", tabsRouter);
+app.use("/api", siteLocationRouter);
 
 // Global error handler. Never leak raw credentials or stack traces to clients.
 app.use((err: unknown, _req: Request, res: Response, _next: NextFunction) => {
