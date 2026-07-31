@@ -1,5 +1,6 @@
 import { Database, RefreshCw, TriangleAlert } from "lucide-react";
 import { useDatabases } from "@/hooks/useDatabases";
+import { useRefreshStores } from "@/hooks/useRefreshStores";
 import { DatabaseTree } from "@/features/databases/DatabaseTree";
 import { StorePanel } from "@/features/stores/StorePanel";
 import { LoadingSpinner } from "@/components/LoadingSpinner";
@@ -16,6 +17,14 @@ export function LeftPanel() {
     refetch,
     isFetching,
   } = useDatabases();
+  const refreshStores = useRefreshStores();
+
+  const isRefreshing = isFetching || refreshStores.isPending;
+
+  const handleRefresh = () => {
+    refetch();
+    refreshStores.mutate();
+  };
 
   return (
     <aside className="flex w-64 shrink-0 flex-col border-r border-border bg-sidebar text-sidebar-foreground">
@@ -38,13 +47,13 @@ export function LeftPanel() {
           <Button
             variant="ghost"
             size="icon"
-            onClick={() => refetch()}
-            disabled={isFetching}
-            title="Refresh databases"
-            aria-label="Refresh databases"
+            onClick={handleRefresh}
+            disabled={isRefreshing}
+            title="Refresh databases & stores"
+            aria-label="Refresh databases & stores"
           >
             <RefreshCw
-              className={isFetching ? "h-4 w-4 animate-spin" : "h-4 w-4"}
+              className={isRefreshing ? "h-4 w-4 animate-spin" : "h-4 w-4"}
             />
           </Button>
         </div>
