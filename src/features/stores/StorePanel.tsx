@@ -1,14 +1,24 @@
-import { useState } from "react";
+import { useEffect } from "react";
 import { Store, TriangleAlert } from "lucide-react";
 import { useStore } from "@/hooks/useStore";
+import { useSelectedStoreStore } from "@/store/selectedStoreStore";
 import { LoadingSpinner } from "@/components/LoadingSpinner";
 import { StoreSelect } from "./StoreSelect";
 import { StoreDetailsCard } from "./StoreDetailsCard";
 import type { QueryError } from "@/types/cosmos";
 
 export function StorePanel() {
-  const [selectedStoreId, setSelectedStoreId] = useState<string | null>(null);
+  const selectedStoreId = useSelectedStoreStore((s) => s.selectedStoreId);
+  const setSelectedStoreId = useSelectedStoreStore((s) => s.setSelectedStoreId);
+  const setTimeZone = useSelectedStoreStore((s) => s.setTimeZone);
   const { data: store, isLoading, isError, error } = useStore(selectedStoreId);
+
+  // Share the selected store's time zone globally so other features (e.g. the
+  // JSON results viewer) can localise UTC dates. Clear it when no store is
+  // resolved so annotations only appear for a valid selection.
+  useEffect(() => {
+    setTimeZone(store?.TimeZone ?? null);
+  }, [store?.TimeZone, setTimeZone]);
 
   return (
     <div className="flex min-h-0 flex-col">
