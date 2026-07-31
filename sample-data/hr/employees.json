@@ -9,7 +9,7 @@
     "role": "manager",
     "salary": 145000,
     "currency": "USD",
-    "hireDate": "2019-03-15",
+    "hireDate": "2019-03-15T09:00:00Z",
     "managerId": null,
     "skills": ["TypeScript", "System Design", "Kubernetes", "Team Leadership"],
     "isActive": true
@@ -24,7 +24,7 @@
     "role": "senior-engineer",
     "salary": 128000,
     "currency": "USD",
-    "hireDate": "2020-07-01",
+    "hireDate": "2020-07-01T09:00:00Z",
     "managerId": "emp-001",
     "skills": ["Rust", "Go", "Distributed Systems", "Azure"],
     "isActive": true
@@ -39,7 +39,7 @@
     "role": "engineer",
     "salary": 105000,
     "currency": "USD",
-    "hireDate": "2022-01-10",
+    "hireDate": "2022-01-10T09:00:00Z",
     "managerId": "emp-001",
     "skills": ["React", "TypeScript", "Node.js", "CosmosDB"],
     "isActive": true
@@ -54,7 +54,7 @@
     "role": "manager",
     "salary": 152000,
     "currency": "USD",
-    "hireDate": "2018-11-05",
+    "hireDate": "2018-11-05T09:00:00Z",
     "managerId": null,
     "skills": [
       "Product Strategy",
@@ -74,7 +74,7 @@
     "role": "product-manager",
     "salary": 118000,
     "currency": "USD",
-    "hireDate": "2021-04-19",
+    "hireDate": "2021-04-19T09:00:00Z",
     "managerId": "emp-004",
     "skills": ["Agile", "OKRs", "SQL", "Figma"],
     "isActive": true
@@ -89,7 +89,7 @@
     "role": "manager",
     "salary": 160000,
     "currency": "USD",
-    "hireDate": "2017-06-20",
+    "hireDate": "2017-06-20T09:00:00Z",
     "managerId": null,
     "skills": ["Enterprise Sales", "CRM", "Negotiation", "Forecasting"],
     "isActive": true
@@ -104,7 +104,7 @@
     "role": "account-executive",
     "salary": 92000,
     "currency": "USD",
-    "hireDate": "2022-09-01",
+    "hireDate": "2022-09-01T09:00:00Z",
     "managerId": "emp-006",
     "skills": ["Salesforce", "Prospecting", "Presentations", "Cold Outreach"],
     "isActive": true
@@ -119,7 +119,7 @@
     "role": "account-executive",
     "salary": 95000,
     "currency": "USD",
-    "hireDate": "2021-11-15",
+    "hireDate": "2021-11-15T09:00:00Z",
     "managerId": "emp-006",
     "skills": ["Salesforce", "Partner Relations", "Contract Negotiation"],
     "isActive": true
@@ -134,7 +134,7 @@
     "role": "lead-designer",
     "salary": 120000,
     "currency": "USD",
-    "hireDate": "2020-02-28",
+    "hireDate": "2020-02-28T09:00:00Z",
     "managerId": null,
     "skills": ["Figma", "User Research", "Prototyping", "Design Systems"],
     "isActive": true
@@ -149,7 +149,7 @@
     "role": "designer",
     "salary": 95000,
     "currency": "USD",
-    "hireDate": "2023-03-06",
+    "hireDate": "2023-03-06T09:00:00Z",
     "managerId": "emp-009",
     "skills": ["Figma", "Accessibility", "Motion Design", "User Testing"],
     "isActive": true
