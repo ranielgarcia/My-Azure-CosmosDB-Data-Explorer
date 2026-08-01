@@ -1,7 +1,8 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useTabStore } from "@/store/tabStore";
 import { useExecuteQuery } from "@/hooks/useExecuteQuery";
 import type { TabState } from "@/types/tabs";
+import { extractDocumentFields } from "@/lib/queryFields";
 import { QueryEditor } from "./QueryEditor";
 import { ExecuteButton } from "./ExecuteButton";
 import { ResultsPanel } from "@/features/query-results/ResultsPanel";
@@ -14,6 +15,11 @@ export function QueryPanel({ tab }: { tab: TabState }) {
   useEffect(() => {
     setCursor({ line: 1, col: 1 });
   }, [tab.id]);
+
+  const fields = useMemo(
+    () => extractDocumentFields(tab.results?.items ?? []),
+    [tab.results],
+  );
 
   const hasQuery = tab.query.trim().length > 0;
   const results = tab.results;
@@ -44,6 +50,7 @@ export function QueryPanel({ tab }: { tab: TabState }) {
           onChange={(value) => updateQuery(tab.id, value)}
           onRun={() => runQuery(tab)}
           onCursorChange={(line, col) => setCursor({ line, col })}
+          fields={fields}
         />
       </div>
 

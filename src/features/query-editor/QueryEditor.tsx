@@ -5,12 +5,21 @@ import MonacoEditor, {
 } from "react-monaco-editor";
 import type { editor } from "monaco-editor";
 import { useThemeStore } from "@/store/themeStore";
+import {
+  LANGUAGE_ID,
+  THEME_DARK,
+  THEME_LIGHT,
+  registerCosmosSql,
+  setModelFields,
+} from "@/lib/cosmosSql";
 
 interface QueryEditorProps {
   value: string;
   onChange: (value: string) => void;
   onRun: () => void;
   onCursorChange?: (line: number, col: number) => void;
+  /** Document field names offered as schema-aware completions. */
+  fields?: string[];
 }
 
 const EDITOR_OPTIONS: editor.IStandaloneEditorConstructionOptions = {
@@ -34,17 +43,27 @@ export function QueryEditor({
   onChange,
   onRun,
   onCursorChange,
+  fields,
 }: QueryEditorProps) {
   const isDark = useThemeStore((s) => s.isDark);
   const onRunRef = useRef(onRun);
   const onCursorChangeRef = useRef(onCursorChange);
+  const editorRef = useRef<editor.IStandaloneCodeEditor | null>(null);
 
   useEffect(() => {
     onRunRef.current = onRun;
     onCursorChangeRef.current = onCursorChange;
   }, [onRun, onCursorChange]);
 
+  // Keep the completion provider's field list in sync as query results change.
+  useEffect(() => {
+    setModelFields(editorRef.current?.getModel() ?? null, fields ?? []);
+  }, [fields]);
+
   const handleMount: EditorDidMount = (editorInstance, monaco) => {
+    editorRef.current = editorInstance;
+    setModelFields(editorInstance.getModel(), fields ?? []);
+
     editorInstance.addCommand(
       monaco.KeyMod.CtrlCmd | monaco.KeyCode.Enter,
       () => {
@@ -63,34 +82,19 @@ export function QueryEditor({
     }
   };
 
-  const handleEditorBeforeMount: EditorWillMount = (monaco) => {
-    // Define the custom theme
-    monaco.editor.defineTheme("my-custom-theme", {
-      base: "hc-black", // Can be 'vs', 'vs-dark', or 'hc-black'
-      inherit: true, // Inherit base styles
-      rules: [
-        { token: "comment", foreground: "ffa500", fontStyle: "italic" },
-        { token: "keyword", foreground: "00ff00" },
-        { token: "identifier", foreground: "ffffff" },
-      ],
-      colors: {
-        "editor.background": "#1e1e24", // Main background color
-        "editor.foreground": "#ffffff", // Default text color
-        "editorCursor.foreground": "#aeafad",
-        "editor.lineHighlightBackground": "#2d2d30",
-      },
-    });
+  const handlerEditorWillMount: EditorWillMount = (monaco) => {
+    registerCosmosSql(monaco);
   };
 
   return (
     <div className="h-full overflow-hidden bg-card/30">
       <MonacoEditor
-        language="sql"
-        theme={isDark ? "my-custom-theme" : "vs"}
+        language={LANGUAGE_ID}
+        theme={isDark ? THEME_DARK : THEME_LIGHT}
         value={value}
         onChange={onChange}
         editorDidMount={handleMount}
-        editorWillMount={handleEditorBeforeMount}
+        editorWillMount={handlerEditorWillMount}
         options={EDITOR_OPTIONS}
         width="100%"
         height="100%"
