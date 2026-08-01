@@ -2,6 +2,7 @@ import { create } from "zustand";
 
 const SIDEBAR_KEY = "cosmos-sidebar-width";
 const STORE_PANEL_KEY = "cosmos-store-panel-height";
+const QUERY_EDITOR_KEY = "cosmos-query-editor-height";
 
 export const DEFAULT_SIDEBAR_WIDTH = 256;
 export const MIN_SIDEBAR_WIDTH = 200;
@@ -9,6 +10,9 @@ export const MAX_SIDEBAR_WIDTH = 560;
 
 export const DEFAULT_STORE_PANEL_HEIGHT = 280;
 export const MIN_STORE_PANEL_HEIGHT = 120;
+
+export const DEFAULT_QUERY_EDITOR_HEIGHT = 160;
+export const MIN_QUERY_EDITOR_HEIGHT = 80;
 
 function clamp(value: number, min: number, max: number): number {
   return Math.min(Math.max(value, min), max);
@@ -30,12 +34,13 @@ function persist(key: string, value: number): void {
 interface LayoutState {
   sidebarWidth: number;
   storePanelHeight: number;
-  /** Set the sidebar width, clamped to [MIN_SIDEBAR_WIDTH, MAX_SIDEBAR_WIDTH]. */
+  queryEditorHeight: number;
   setSidebarWidth: (width: number) => void;
-  /** Set the store-panel height, clamped to [MIN_STORE_PANEL_HEIGHT, max]. */
   setStorePanelHeight: (height: number, max?: number) => void;
+  setQueryEditorHeight: (height: number, max?: number) => void;
   resetSidebarWidth: () => void;
   resetStorePanelHeight: () => void;
+  resetQueryEditorHeight: () => void;
 }
 
 export const useLayoutStore = create<LayoutState>((set) => ({
@@ -48,6 +53,10 @@ export const useLayoutStore = create<LayoutState>((set) => ({
     readStoredNumber(STORE_PANEL_KEY, DEFAULT_STORE_PANEL_HEIGHT),
     MIN_STORE_PANEL_HEIGHT,
   ),
+  queryEditorHeight: Math.max(
+    readStoredNumber(QUERY_EDITOR_KEY, DEFAULT_QUERY_EDITOR_HEIGHT),
+    MIN_QUERY_EDITOR_HEIGHT,
+  ),
   setSidebarWidth: (width) => {
     const clamped = clamp(width, MIN_SIDEBAR_WIDTH, MAX_SIDEBAR_WIDTH);
     persist(SIDEBAR_KEY, clamped);
@@ -59,6 +68,12 @@ export const useLayoutStore = create<LayoutState>((set) => ({
     persist(STORE_PANEL_KEY, clamped);
     set({ storePanelHeight: clamped });
   },
+  setQueryEditorHeight: (height, max = Number.POSITIVE_INFINITY) => {
+    const upper = Math.max(MIN_QUERY_EDITOR_HEIGHT, max);
+    const clamped = clamp(height, MIN_QUERY_EDITOR_HEIGHT, upper);
+    persist(QUERY_EDITOR_KEY, clamped);
+    set({ queryEditorHeight: clamped });
+  },
   resetSidebarWidth: () => {
     persist(SIDEBAR_KEY, DEFAULT_SIDEBAR_WIDTH);
     set({ sidebarWidth: DEFAULT_SIDEBAR_WIDTH });
@@ -66,5 +81,9 @@ export const useLayoutStore = create<LayoutState>((set) => ({
   resetStorePanelHeight: () => {
     persist(STORE_PANEL_KEY, DEFAULT_STORE_PANEL_HEIGHT);
     set({ storePanelHeight: DEFAULT_STORE_PANEL_HEIGHT });
+  },
+  resetQueryEditorHeight: () => {
+    persist(QUERY_EDITOR_KEY, DEFAULT_QUERY_EDITOR_HEIGHT);
+    set({ queryEditorHeight: DEFAULT_QUERY_EDITOR_HEIGHT });
   },
 }));

@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import { useTabStore } from "@/store/tabStore";
 import { useExecuteQuery } from "@/hooks/useExecuteQuery";
 import type { TabState } from "@/types/tabs";
@@ -6,11 +6,26 @@ import { extractDocumentFields } from "@/lib/queryFields";
 import { QueryEditor } from "./QueryEditor";
 import { ExecuteButton } from "./ExecuteButton";
 import { ResultsPanel } from "@/features/query-results/ResultsPanel";
+import { ResizeHandle } from "@/components/ResizeHandle";
+import { MIN_QUERY_EDITOR_HEIGHT, useLayoutStore } from "@/store/layoutStore";
 
 export function QueryPanel({ tab }: { tab: TabState }) {
   const updateQuery = useTabStore((s) => s.updateQuery);
   const { runQuery, loadMore, isPending } = useExecuteQuery();
   const [cursor, setCursor] = useState({ line: 1, col: 1 });
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  const queryEditorHeight = useLayoutStore((s) => s.queryEditorHeight);
+  const setQueryEditorHeight = useLayoutStore((s) => s.setQueryEditorHeight);
+  const resetQueryEditorHeight = useLayoutStore(
+    (s) => s.resetQueryEditorHeight,
+  );
+
+  const handleEditorDelta = (dy: number) => {
+    const containerHeight = containerRef.current?.clientHeight ?? 600;
+    const max = containerHeight - MIN_QUERY_EDITOR_HEIGHT;
+    setQueryEditorHeight(queryEditorHeight + dy, max);
+  };
 
   useEffect(() => {
     setCursor({ line: 1, col: 1 });
@@ -25,7 +40,10 @@ export function QueryPanel({ tab }: { tab: TabState }) {
   const results = tab.results;
 
   return (
-    <div className="flex flex-1 flex-col overflow-hidden bg-background">
+    <div
+      ref={containerRef}
+      className="flex flex-1 flex-col overflow-hidden bg-background"
+    >
       {/* Editor toolbar */}
       <div className="flex items-center justify-between gap-2 border-b border-border bg-card/50 px-4 py-2.5">
         <span className="truncate font-mono text-xs text-muted-foreground">
@@ -43,8 +61,11 @@ export function QueryPanel({ tab }: { tab: TabState }) {
         </div>
       </div>
 
-      {/* Editor */}
-      <div className="h-40 shrink-0 border-b border-border">
+      {/* Editor — resizable height */}
+      <div
+        style={{ height: queryEditorHeight }}
+        className="shrink-0 border-b border-border"
+      >
         <QueryEditor
           value={tab.query}
           onChange={(value) => updateQuery(tab.id, value)}
@@ -53,6 +74,13 @@ export function QueryPanel({ tab }: { tab: TabState }) {
           fields={fields}
         />
       </div>
+
+      <ResizeHandle
+        orientation="horizontal"
+        ariaLabel="Resize query editor"
+        onDelta={handleEditorDelta}
+        onReset={resetQueryEditorHeight}
+      />
 
       {/* Status bar */}
       {results ? (
