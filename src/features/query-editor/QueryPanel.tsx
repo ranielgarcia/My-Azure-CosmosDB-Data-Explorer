@@ -1,12 +1,15 @@
 import { useState, useEffect, useMemo, useRef } from "react";
+import { Bookmark } from "lucide-react";
 import { useTabStore } from "@/store/tabStore";
 import { useExecuteQuery } from "@/hooks/useExecuteQuery";
 import type { TabState } from "@/types/tabs";
 import { extractDocumentFields } from "@/lib/queryFields";
 import { QueryEditor } from "./QueryEditor";
 import { ExecuteButton } from "./ExecuteButton";
+import { SaveQueryButton } from "@/features/saved-queries/SaveQueryButton";
 import { ResultsPanel } from "@/features/query-results/ResultsPanel";
 import { ResizeHandle } from "@/components/ResizeHandle";
+import { Button } from "@/components/ui/button";
 import { MIN_QUERY_EDITOR_HEIGHT, useLayoutStore } from "@/store/layoutStore";
 
 export function QueryPanel({ tab }: { tab: TabState }) {
@@ -21,6 +24,8 @@ export function QueryPanel({ tab }: { tab: TabState }) {
   const resetQueryEditorHeight = useLayoutStore(
     (s) => s.resetQueryEditorHeight,
   );
+  const savedQueriesOpen = useLayoutStore((s) => s.savedQueriesOpen);
+  const toggleSavedQueries = useLayoutStore((s) => s.toggleSavedQueries);
 
   const handleEditorDelta = (dy: number) => {
     const containerHeight = containerRef.current?.clientHeight ?? 600;
@@ -54,6 +59,17 @@ export function QueryPanel({ tab }: { tab: TabState }) {
           <span className="font-mono text-xs text-muted-foreground/60 tabular-nums">
             Ln {cursor.line}, Col {cursor.col}
           </span>
+          <SaveQueryButton tab={tab} />
+          <Button
+            variant={savedQueriesOpen ? "secondary" : "outline"}
+            size="sm"
+            onClick={toggleSavedQueries}
+            title="Show saved queries for this container"
+            aria-pressed={savedQueriesOpen}
+          >
+            <Bookmark className="h-3.5 w-3.5" />
+            Saved
+          </Button>
           <ExecuteButton
             onExecute={() => runQuery(tab, getSelectedTextRef.current())}
             isLoading={isPending}

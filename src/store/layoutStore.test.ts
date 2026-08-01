@@ -23,6 +23,8 @@ const {
   MAX_SIDEBAR_WIDTH,
   MIN_SIDEBAR_WIDTH,
   MIN_STORE_PANEL_HEIGHT,
+  MAX_RIGHT_SIDEBAR_WIDTH,
+  MIN_RIGHT_SIDEBAR_WIDTH,
   useLayoutStore,
 } = await import("./layoutStore");
 
@@ -75,6 +77,37 @@ describe("layoutStore", () => {
     expect(useLayoutStore.getState().sidebarWidth).toBe(DEFAULT_SIDEBAR_WIDTH);
     expect(useLayoutStore.getState().storePanelHeight).toBe(
       DEFAULT_STORE_PANEL_HEIGHT,
+    );
+  });
+
+  it("toggles and persists the saved-queries panel open state", () => {
+    const initial = useLayoutStore.getState().savedQueriesOpen;
+
+    useLayoutStore.getState().toggleSavedQueries();
+    expect(useLayoutStore.getState().savedQueriesOpen).toBe(!initial);
+    expect(localStorage.getItem("cosmos-saved-queries-open")).toBe(
+      String(!initial),
+    );
+
+    useLayoutStore.getState().setSavedQueriesOpen(true);
+    expect(useLayoutStore.getState().savedQueriesOpen).toBe(true);
+    expect(localStorage.getItem("cosmos-saved-queries-open")).toBe("true");
+  });
+
+  it("clamps and persists the right sidebar width", () => {
+    const { setRightSidebarWidth } = useLayoutStore.getState();
+
+    setRightSidebarWidth(10_000);
+    expect(useLayoutStore.getState().rightSidebarWidth).toBe(
+      MAX_RIGHT_SIDEBAR_WIDTH,
+    );
+
+    setRightSidebarWidth(0);
+    expect(useLayoutStore.getState().rightSidebarWidth).toBe(
+      MIN_RIGHT_SIDEBAR_WIDTH,
+    );
+    expect(localStorage.getItem("cosmos-right-sidebar-width")).toBe(
+      String(MIN_RIGHT_SIDEBAR_WIDTH),
     );
   });
 });
