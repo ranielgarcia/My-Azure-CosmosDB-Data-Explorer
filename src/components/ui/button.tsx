@@ -21,10 +21,17 @@ const sizeClasses = {
 export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: keyof typeof variantClasses;
   size?: keyof typeof sizeClasses;
+  ref?: React.Ref<HTMLButtonElement>;
 }
 
-export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
-  ({ className, variant = "default", size = "default", ...props }, ref) => (
+export function Button({
+  className,
+  variant = "default",
+  size = "default",
+  ref,
+  ...props
+}: ButtonProps) {
+  return (
     <button
       ref={ref}
       className={cn(
@@ -35,6 +42,5 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
       )}
       {...props}
     />
-  ),
-);
-Button.displayName = "Button";
+  );
+}

@@ -9,10 +9,16 @@ const variantClasses = {
 
 export interface AlertProps extends React.HTMLAttributes<HTMLDivElement> {
   variant?: keyof typeof variantClasses;
+  ref?: React.Ref<HTMLDivElement>;
 }
 
-export const Alert = React.forwardRef<HTMLDivElement, AlertProps>(
-  ({ className, variant = "default", ...props }, ref) => (
+export function Alert({
+  className,
+  variant = "default",
+  ref,
+  ...props
+}: AlertProps) {
+  return (
     <div
       ref={ref}
       role="alert"
@@ -23,30 +29,37 @@ export const Alert = React.forwardRef<HTMLDivElement, AlertProps>(
       )}
       {...props}
     />
-  ),
-);
-Alert.displayName = "Alert";
+  );
+}
 
-export const AlertTitle = React.forwardRef<
-  HTMLParagraphElement,
-  React.HTMLAttributes<HTMLHeadingElement>
->(({ className, ...props }, ref) => (
-  <h5
-    ref={ref}
-    className={cn("mb-1 font-medium leading-none tracking-tight", className)}
-    {...props}
-  />
-));
-AlertTitle.displayName = "AlertTitle";
+export function AlertTitle({
+  className,
+  ref,
+  ...props
+}: React.HTMLAttributes<HTMLHeadingElement> & {
+  ref?: React.Ref<HTMLParagraphElement>;
+}) {
+  return (
+    <h5
+      ref={ref}
+      className={cn("mb-1 font-medium leading-none tracking-tight", className)}
+      {...props}
+    />
+  );
+}
 
-export const AlertDescription = React.forwardRef<
-  HTMLParagraphElement,
-  React.HTMLAttributes<HTMLParagraphElement>
->(({ className, ...props }, ref) => (
-  <div
-    ref={ref}
-    className={cn("text-sm [&_p]:leading-relaxed", className)}
-    {...props}
-  />
-));
-AlertDescription.displayName = "AlertDescription";
+export function AlertDescription({
+  className,
+  ref,
+  ...props
+}: React.HTMLAttributes<HTMLParagraphElement> & {
+  ref?: React.Ref<HTMLParagraphElement>;
+}) {
+  return (
+    <div
+      ref={ref}
+      className={cn("text-sm [&_p]:leading-relaxed", className)}
+      {...props}
+    />
+  );
+}
