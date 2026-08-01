@@ -36,6 +36,9 @@ const EDITOR_OPTIONS: editor.IStandaloneEditorConstructionOptions = {
   scrollbar: { verticalScrollbarSize: 10, horizontalScrollbarSize: 10 },
   overviewRulerLanes: 0,
   fixedOverflowWidgets: true,
+  quickSuggestions: { other: true, comments: false, strings: false },
+  suggestOnTriggerCharacters: true,
+  tabCompletion: "on",
 };
 
 export function QueryEditor({
@@ -82,8 +85,8 @@ export function QueryEditor({
     }
   };
 
-  const handlerEditorWillMount: EditorWillMount = (monaco) => {
-    registerCosmosSql(monaco);
+  const handlerEditorWillMount: EditorWillMount = () => {
+    registerCosmosSql();
   };
 
   return (

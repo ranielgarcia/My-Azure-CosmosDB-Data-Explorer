@@ -1,4 +1,10 @@
-import type * as Monaco from "monaco-editor";
+// Import the exact Monaco singleton that react-monaco-editor uses (it imports
+// from "monaco-editor/esm/vs/editor/editor.api"). Registering our language and
+// completion provider against this singleton at module load — see the
+// registerCosmosSql() call at the bottom — guarantees the editors it creates
+// can see our completions, independent of any editor lifecycle hook.
+import * as monaco from "monaco-editor/esm/vs/editor/editor.api";
+import { childFieldNames } from "./queryFields";
 
 export const LANGUAGE_ID = "cosmos-sql";
 export const THEME_DARK = "cosmos-dark";
@@ -108,21 +114,21 @@ const BUILTIN_FUNCTIONS = [
 ];
 
 /** Per-model field names for schema-aware completions. */
-const modelFields = new WeakMap<Monaco.editor.ITextModel, string[]>();
+const modelFields = new WeakMap<monaco.editor.ITextModel, string[]>();
 
 /**
  * Registers the container document fields associated with an editor model so
  * the completion provider can suggest them. Passing an empty array clears them.
  */
 export function setModelFields(
-  model: Monaco.editor.ITextModel | null,
+  model: monaco.editor.ITextModel | null,
   fields: string[],
 ): void {
   if (!model) return;
   modelFields.set(model, fields);
 }
 
-function getModelFields(model: Monaco.editor.ITextModel): string[] {
+function getModelFields(model: monaco.editor.ITextModel): string[] {
   return modelFields.get(model) ?? [];
 }
 
@@ -133,7 +139,7 @@ let registered = false;
  * configuration, light/dark themes, and a completion provider. Idempotent — safe
  * to call from every editor mount.
  */
-export function registerCosmosSql(monaco: typeof Monaco): void {
+export function registerCosmosSql(): void {
   if (registered) return;
   registered = true;
 
@@ -260,14 +266,49 @@ export function registerCosmosSql(monaco: typeof Monaco): void {
     triggerCharacters: [".", " "],
     provideCompletionItems(model, position) {
       const word = model.getWordUntilPosition(position);
-      const range: Monaco.IRange = {
+      const range: monaco.IRange = {
         startLineNumber: position.lineNumber,
         endLineNumber: position.lineNumber,
         startColumn: word.startColumn,
         endColumn: word.endColumn,
       };
 
-      const keywordItems: Monaco.languages.CompletionItem[] = KEYWORDS.map(
+      const allPaths = getModelFields(model);
+
+      // Member-access context: text before the cursor ends with an alias/property
+      // chain followed by a dot (e.g. `c.`, `c.address.`). Cosmos queries always
+      // qualify properties with the FROM alias, so the first chain segment is the
+      // alias and the rest maps into the document's property paths.
+      const textUntilCursor = model.getValueInRange({
+        startLineNumber: position.lineNumber,
+        startColumn: 1,
+        endLineNumber: position.lineNumber,
+        endColumn: position.column,
+      });
+      const memberMatch =
+        /([A-Za-z_]\w*(?:\.[A-Za-z_]\w*)*)\.([A-Za-z_]\w*)?$/.exec(
+          textUntilCursor,
+        );
+
+      if (memberMatch) {
+        const segments = memberMatch[1].split(".");
+        const rootPrefix = segments.slice(1).join("."); // drop the FROM alias
+        const children = childFieldNames(allPaths, rootPrefix);
+
+        const fieldItems: monaco.languages.CompletionItem[] = children.map(
+          (name) => ({
+            label: name,
+            kind: monaco.languages.CompletionItemKind.Field,
+            insertText: name,
+            detail: "Document field",
+            range,
+          }),
+        );
+
+        return { suggestions: fieldItems };
+      }
+
+      const keywordItems: monaco.languages.CompletionItem[] = KEYWORDS.map(
         (kw) => ({
           label: kw,
           kind: monaco.languages.CompletionItemKind.Keyword,
@@ -276,7 +317,7 @@ export function registerCosmosSql(monaco: typeof Monaco): void {
         }),
       );
 
-      const functionItems: Monaco.languages.CompletionItem[] =
+      const functionItems: monaco.languages.CompletionItem[] =
         BUILTIN_FUNCTIONS.map((fn) => ({
           label: fn,
           kind: monaco.languages.CompletionItemKind.Function,
@@ -287,8 +328,11 @@ export function registerCosmosSql(monaco: typeof Monaco): void {
           range,
         }));
 
-      const fieldItems: Monaco.languages.CompletionItem[] = getModelFields(
-        model,
+      // Outside member access, offer top-level fields as hints alongside the
+      // language tokens (nested paths only surface after a qualifying dot).
+      const fieldItems: monaco.languages.CompletionItem[] = childFieldNames(
+        allPaths,
+        "",
       ).map((field) => ({
         label: field,
         kind: monaco.languages.CompletionItemKind.Field,
@@ -303,3 +347,7 @@ export function registerCosmosSql(monaco: typeof Monaco): void {
     },
   });
 }
+
+// Register at module load so the language + completions exist before any editor
+// is created.
+registerCosmosSql();

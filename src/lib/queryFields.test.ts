@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { extractDocumentFields } from "./queryFields";
+import { childFieldNames, extractDocumentFields } from "./queryFields";
 
 describe("extractDocumentFields", () => {
   it("returns an empty array for no items", () => {
@@ -42,5 +42,75 @@ describe("extractDocumentFields", () => {
     const items = [42, "string", null, undefined, ["a", "b"], { field: true }];
 
     expect(extractDocumentFields(items)).toEqual(["field"]);
+  });
+
+  it("flattens nested objects into dotted paths", () => {
+    const items = [
+      {
+        id: "1",
+        address: { city: "Perth", geo: { lat: -31.9, lng: 115.8 } },
+      },
+    ];
+
+    expect(extractDocumentFields(items)).toEqual([
+      "address",
+      "address.city",
+      "address.geo",
+      "address.geo.lat",
+      "address.geo.lng",
+      "id",
+    ]);
+  });
+
+  it("treats arrays as leaves and does not recurse into them", () => {
+    const items = [{ tags: [{ name: "a" }], id: "1" }];
+
+    expect(extractDocumentFields(items)).toEqual(["id", "tags"]);
+  });
+
+  it("only filters system properties at the document root", () => {
+    const items = [{ id: "1", meta: { _ts: 5, label: "x" } }];
+
+    expect(extractDocumentFields(items)).toEqual([
+      "id",
+      "meta",
+      "meta._ts",
+      "meta.label",
+    ]);
+  });
+});
+
+describe("childFieldNames", () => {
+  const paths = [
+    "address",
+    "address.city",
+    "address.geo",
+    "address.geo.lat",
+    "id",
+    "name",
+  ];
+
+  it("returns top-level fields for an empty parent path", () => {
+    expect(childFieldNames(paths, "").sort()).toEqual([
+      "address",
+      "id",
+      "name",
+    ]);
+  });
+
+  it("returns immediate children of a nested parent", () => {
+    expect(childFieldNames(paths, "address").sort()).toEqual(["city", "geo"]);
+  });
+
+  it("returns deeper immediate children only", () => {
+    expect(childFieldNames(paths, "address.geo")).toEqual(["lat"]);
+  });
+
+  it("returns nothing for an unknown parent", () => {
+    expect(childFieldNames(paths, "missing")).toEqual([]);
+  });
+
+  it("returns nothing when there are no fields", () => {
+    expect(childFieldNames([], "")).toEqual([]);
   });
 });
