@@ -49,7 +49,8 @@ export function useExecuteQuery() {
   return {
     runQuery: (tab: TabState, overrideQuery?: string) =>
       mutation.mutate({ tab, mode: "replace", overrideQuery }),
-    loadMore: (tab: TabState) => mutation.mutate({ tab, mode: "append" }),
+    loadMore: (tab: TabState, overrideQuery?: string) =>
+      mutation.mutate({ tab, mode: "append", overrideQuery }),
     isPending: mutation.isPending,
   };
 }

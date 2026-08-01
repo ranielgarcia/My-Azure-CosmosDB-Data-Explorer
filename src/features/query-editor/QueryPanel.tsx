@@ -112,7 +112,7 @@ export function QueryPanel({ tab }: { tab: TabState }) {
       {/* Results */}
       <ResultsPanel
         tab={tab}
-        onLoadMore={() => loadMore(tab)}
+        onLoadMore={() => loadMore(tab, getSelectedTextRef.current())}
         isLoadingMore={isPending}
       />
     </div>
