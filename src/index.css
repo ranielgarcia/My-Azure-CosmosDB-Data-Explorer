@@ -146,36 +146,10 @@ button,
   background-color: var(--muted-foreground);
 }
 
-/* highlight.js tokens — tuned for the light theme by default … */
-.hljs {
-  color: var(--foreground);
-  background: transparent;
-}
-.hljs-attr {
-  color: hsl(221 70% 45%);
-}
-.hljs-string {
-  color: hsl(142 45% 33%);
-}
-.hljs-number {
-  color: hsl(24 74% 42%);
-}
-.hljs-literal,
-.hljs-keyword {
-  color: hsl(280 55% 48%);
-}
-
-/* … and brightened for dark mode. */
-.dark .hljs-attr {
-  color: hsl(210 75% 74%);
-}
-.dark .hljs-string {
-  color: hsl(95 42% 64%);
-}
-.dark .hljs-number {
-  color: hsl(29 58% 64%);
-}
-.dark .hljs-literal,
-.dark .hljs-keyword {
-  color: hsl(286 62% 70%);
+/* Monaco JSON viewer — UTC date annotation injected text */
+.date-annotation {
+  font-style: italic;
+  opacity: 0.5;
+  user-select: none;
+  pointer-events: none;
 }

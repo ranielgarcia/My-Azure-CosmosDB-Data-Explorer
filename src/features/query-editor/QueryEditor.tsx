@@ -1,8 +1,5 @@
 import { useEffect, useRef } from "react";
-import MonacoEditor, {
-  EditorWillMount,
-  type EditorDidMount,
-} from "react-monaco-editor";
+import Editor, { type BeforeMount, type OnMount } from "@monaco-editor/react";
 import type { editor } from "monaco-editor";
 import { useThemeStore } from "@/store/themeStore";
 import {
@@ -66,7 +63,7 @@ export function QueryEditor({
     setModelFields(editorRef.current?.getModel() ?? null, fields ?? []);
   }, [fields]);
 
-  const handleMount: EditorDidMount = (editorInstance, monaco) => {
+  const handleMount: OnMount = (editorInstance, monaco) => {
     editorRef.current = editorInstance;
     setModelFields(editorInstance.getModel(), fields ?? []);
 
@@ -100,19 +97,19 @@ export function QueryEditor({
     }
   };
 
-  const handlerEditorWillMount: EditorWillMount = () => {
+  const handlerEditorWillMount: BeforeMount = () => {
     registerCosmosSql();
   };
 
   return (
     <div className="h-full overflow-hidden bg-card/30">
-      <MonacoEditor
+      <Editor
         language={LANGUAGE_ID}
         theme={isDark ? THEME_DARK : THEME_LIGHT}
         value={value}
-        onChange={onChange}
-        editorDidMount={handleMount}
-        editorWillMount={handlerEditorWillMount}
+        onChange={(v) => onChange(v ?? "")}
+        onMount={handleMount}
+        beforeMount={handlerEditorWillMount}
         options={EDITOR_OPTIONS}
         width="100%"
         height="100%"

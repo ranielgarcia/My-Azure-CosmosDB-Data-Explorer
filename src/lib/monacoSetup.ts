@@ -2,6 +2,8 @@
 // language with no dedicated language service, so the base editor worker is all
 // we need. Importing this module once (from main.tsx) wires the environment
 // before any editor is created.
+import * as monaco from "monaco-editor";
+import { loader } from "@monaco-editor/react";
 import EditorWorker from "monaco-editor/esm/vs/editor/editor.worker?worker";
 // react-monaco-editor imports the bare `editor.api`, which ships the core editor
 // + tokenizer but OMITS the standalone editor contributions (autocomplete/
@@ -18,3 +20,7 @@ self.MonacoEnvironment = {
     return new EditorWorker();
   },
 };
+
+// Point @monaco-editor/react at the locally-bundled monaco package instead
+// of loading from CDN. This keeps the app fully offline.
+loader.config({ monaco });
