@@ -215,7 +215,7 @@ npm test
 
 ## Out of scope for v1
 
-Monaco editor, Prev/Next page navigation, result virtualization, document CRUD, light‑mode toggle,
+Prev/Next page navigation, result virtualization, document CRUD, light‑mode toggle,
 query history, and query cancellation. (Append‑style pagination via continuation tokens **is** in
 scope.)
 

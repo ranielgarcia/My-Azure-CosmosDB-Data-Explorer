@@ -82,7 +82,7 @@ token exists and hidden once it is `null`. Re-running a query **resets** the acc
 
 ## Out of scope for v1
 
-Monaco editor, Prev/Next page navigation, result virtualization, document CRUD,
+Prev/Next page navigation, result virtualization, document CRUD,
 query history, and query cancellation. (Basic append-style pagination via continuation tokens **is**
 in scope. Light/dark theming with a persisted toggle is now **in** scope.) See the "Future Enhancements" section of
 [implementation-plan.md](implementation-plan.md) before adding any of these.

@@ -90,7 +90,7 @@ Everything lives at the **repo root** (the tree's root below *is* the repo root,
     │   │   └── TabContent.tsx      # renders QueryPanel for active tab
     │   ├── query-editor/
     │   │   ├── QueryPanel.tsx      # vertical split: editor + results + status bar
-    │   │   ├── QueryEditor.tsx     # <textarea> monospace, Ctrl+Enter to run
+    │   │   ├── QueryEditor.tsx     # Monaco editor (SQL), Ctrl+Enter to run
     │   │   └── ExecuteButton.tsx   # shadcn Button + loading spinner
     │   └── query-results/
     │       ├── ResultsPanel.tsx    # conditional: loading / error / results / empty
@@ -398,7 +398,7 @@ TabBar
 
 TabContent  (keyed by activeTabId to preserve editor DOM state)
 └── QueryPanel
-    ├── QueryEditor        (<textarea> monospace font, Ctrl+Enter triggers execution)
+    ├── QueryEditor        (Monaco editor, SQL syntax highlighting, Ctrl+Enter triggers execution)
     ├── ExecuteButton      (shadcn Button; shows Loader2 icon while loading)
     ├── StatusBar          (item count + RU charge; visible after successful query)
     └── ResultsPanel
@@ -512,7 +512,7 @@ server/dist/
 | Read-only enforcement at the proxy            | Prevents accidental data mutation from the UI                               |
 | Both `connection-string` and `azure-cli` auth | Covers local dev (key) and Azure-hosted (managed identity / CLI) scenarios |
 | Zustand for client state                      | Lightweight, zero boilerplate, integrates cleanly with React Query          |
-| Plain `<textarea>` for query editor (v1)      | Keeps initial bundle lean; Monaco Editor is a future enhancement            |
+| Monaco editor for the query editor            | SQL syntax highlighting, line numbers, and Ctrl/Cmd+Enter to run; theme follows the app |
 | Light + dark themes with persisted toggle     | System default (`prefers-color-scheme`); choice saved to `localStorage` (`cosmos-theme`) |
 | Append-style pagination (continuation tokens) | One page (100 items) per request; *Load more* appends and accumulates RU     |
 
@@ -520,7 +520,7 @@ server/dist/
 
 ## Future Enhancements (out of v1 scope)
 
-1. **Monaco Editor** — SQL syntax highlighting and IntelliSense in the query editor.
+1. **Monaco IntelliSense** — schema-aware autocompletion in the query editor (Monaco itself is now in v1).
 2. **Prev/Next page navigation & result virtualization** — append-style *Load more* pagination is
    already in v1; classic paging and virtualized rendering of very large result sets are future work.
 3. **Document CRUD** — create, edit, and delete individual documents directly from the UI.

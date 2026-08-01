@@ -1,3 +1,4 @@
+import { useState, useEffect } from "react";
 import { useTabStore } from "@/store/tabStore";
 import { useExecuteQuery } from "@/hooks/useExecuteQuery";
 import type { TabState } from "@/types/tabs";
@@ -8,6 +9,11 @@ import { ResultsPanel } from "@/features/query-results/ResultsPanel";
 export function QueryPanel({ tab }: { tab: TabState }) {
   const updateQuery = useTabStore((s) => s.updateQuery);
   const { runQuery, loadMore, isPending } = useExecuteQuery();
+  const [cursor, setCursor] = useState({ line: 1, col: 1 });
+
+  useEffect(() => {
+    setCursor({ line: 1, col: 1 });
+  }, [tab.id]);
 
   const hasQuery = tab.query.trim().length > 0;
   const results = tab.results;
@@ -19,11 +25,16 @@ export function QueryPanel({ tab }: { tab: TabState }) {
         <span className="truncate font-mono text-xs text-muted-foreground">
           {tab.label}
         </span>
-        <ExecuteButton
-          onExecute={() => runQuery(tab)}
-          isLoading={isPending}
-          disabled={!hasQuery}
-        />
+        <div className="flex items-center gap-3">
+          <span className="font-mono text-xs text-muted-foreground/60 tabular-nums">
+            Ln {cursor.line}, Col {cursor.col}
+          </span>
+          <ExecuteButton
+            onExecute={() => runQuery(tab)}
+            isLoading={isPending}
+            disabled={!hasQuery}
+          />
+        </div>
       </div>
 
       {/* Editor */}
@@ -32,6 +43,7 @@ export function QueryPanel({ tab }: { tab: TabState }) {
           value={tab.query}
           onChange={(value) => updateQuery(tab.id, value)}
           onRun={() => runQuery(tab)}
+          onCursorChange={(line, col) => setCursor({ line, col })}
         />
       </div>
 
