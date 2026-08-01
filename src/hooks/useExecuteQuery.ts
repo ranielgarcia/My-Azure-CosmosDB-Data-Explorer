@@ -9,6 +9,7 @@ const PAGE_SIZE = 100;
 interface RunVariables {
   tab: TabState;
   mode: "replace" | "append";
+  overrideQuery?: string;
 }
 
 export function useExecuteQuery() {
@@ -17,7 +18,7 @@ export function useExecuteQuery() {
   const applyQueryResult = useTabStore((s) => s.applyQueryResult);
 
   const mutation = useMutation({
-    mutationFn: ({ tab, mode }: RunVariables) => {
+    mutationFn: ({ tab, mode, overrideQuery }: RunVariables) => {
       const continuationToken =
         mode === "append"
           ? (tab.results?.continuationToken ?? undefined)
@@ -25,7 +26,7 @@ export function useExecuteQuery() {
       return executeQuery(
         tab.databaseId,
         tab.containerId,
-        tab.query,
+        overrideQuery ?? tab.query,
         PAGE_SIZE,
         continuationToken,
       );
@@ -46,7 +47,8 @@ export function useExecuteQuery() {
   });
 
   return {
-    runQuery: (tab: TabState) => mutation.mutate({ tab, mode: "replace" }),
+    runQuery: (tab: TabState, overrideQuery?: string) =>
+      mutation.mutate({ tab, mode: "replace", overrideQuery }),
     loadMore: (tab: TabState) => mutation.mutate({ tab, mode: "append" }),
     isPending: mutation.isPending,
   };

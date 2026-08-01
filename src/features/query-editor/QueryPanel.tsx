@@ -14,6 +14,7 @@ export function QueryPanel({ tab }: { tab: TabState }) {
   const { runQuery, loadMore, isPending } = useExecuteQuery();
   const [cursor, setCursor] = useState({ line: 1, col: 1 });
   const containerRef = useRef<HTMLDivElement>(null);
+  const getSelectedTextRef = useRef<() => string | undefined>(() => undefined);
 
   const queryEditorHeight = useLayoutStore((s) => s.queryEditorHeight);
   const setQueryEditorHeight = useLayoutStore((s) => s.setQueryEditorHeight);
@@ -54,7 +55,7 @@ export function QueryPanel({ tab }: { tab: TabState }) {
             Ln {cursor.line}, Col {cursor.col}
           </span>
           <ExecuteButton
-            onExecute={() => runQuery(tab)}
+            onExecute={() => runQuery(tab, getSelectedTextRef.current())}
             isLoading={isPending}
             disabled={!hasQuery}
           />
@@ -69,9 +70,12 @@ export function QueryPanel({ tab }: { tab: TabState }) {
         <QueryEditor
           value={tab.query}
           onChange={(value) => updateQuery(tab.id, value)}
-          onRun={() => runQuery(tab)}
+          onRun={(overrideQuery) => runQuery(tab, overrideQuery)}
           onCursorChange={(line, col) => setCursor({ line, col })}
           fields={fields}
+          registerGetSelectedText={(fn) => {
+            getSelectedTextRef.current = fn;
+          }}
         />
       </div>
 

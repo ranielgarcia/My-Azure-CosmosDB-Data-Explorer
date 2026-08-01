@@ -16,10 +16,12 @@ import {
 interface QueryEditorProps {
   value: string;
   onChange: (value: string) => void;
-  onRun: () => void;
+  onRun: (overrideQuery?: string) => void;
   onCursorChange?: (line: number, col: number) => void;
   /** Document field names offered as schema-aware completions. */
   fields?: string[];
+  /** Called once on mount with a function that returns the current editor selection text (or undefined if nothing is selected). */
+  registerGetSelectedText?: (fn: () => string | undefined) => void;
 }
 
 const EDITOR_OPTIONS: editor.IStandaloneEditorConstructionOptions = {
@@ -47,6 +49,7 @@ export function QueryEditor({
   onRun,
   onCursorChange,
   fields,
+  registerGetSelectedText,
 }: QueryEditorProps) {
   const isDark = useThemeStore((s) => s.isDark);
   const onRunRef = useRef(onRun);
@@ -67,10 +70,22 @@ export function QueryEditor({
     editorRef.current = editorInstance;
     setModelFields(editorInstance.getModel(), fields ?? []);
 
+    registerGetSelectedText?.(() => {
+      const selection = editorInstance.getSelection();
+      if (!selection || selection.isEmpty()) return undefined;
+      return editorInstance.getModel()?.getValueInRange(selection);
+    });
+
     editorInstance.addCommand(
       monaco.KeyMod.CtrlCmd | monaco.KeyCode.Enter,
       () => {
-        onRunRef.current();
+        const selection = editorInstance.getSelection();
+        const selectedText =
+          selection && !selection.isEmpty()
+            ? (editorInstance.getModel()?.getValueInRange(selection) ??
+              undefined)
+            : undefined;
+        onRunRef.current(selectedText);
       },
     );
     editorInstance.onDidChangeCursorPosition((e) => {
