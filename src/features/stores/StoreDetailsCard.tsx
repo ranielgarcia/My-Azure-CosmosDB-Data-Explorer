@@ -1,5 +1,10 @@
-import { Clock, Globe, MapPin } from "lucide-react";
+import { useMemo } from "react";
+import { Clock, Globe, MapPin, TriangleAlert, Warehouse } from "lucide-react";
+import { LoadingSpinner } from "@/components/LoadingSpinner";
+import { useStockroomZonesByStore } from "@/hooks/useStockroomZonesByStore";
+import { formatUtcInTimeZone } from "@/lib/dateFormat";
 import type { StoreDetails } from "@/types/siteLocation";
+import type { StockroomZone } from "@/types/stockroomZones";
 
 function Section({
   icon,
@@ -21,7 +26,51 @@ function Section({
   );
 }
 
+function ZoneRow({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="flex items-center justify-between gap-2 text-sm">
+      <span className="text-muted-foreground">{label}</span>
+      <span className="truncate font-mono text-xs text-foreground">
+        {value || "—"}
+      </span>
+    </div>
+  );
+}
+
+function ZoneCard({
+  zone,
+  timeZone,
+}: {
+  zone: StockroomZone;
+  timeZone: string;
+}) {
+  const lastReset =
+    formatUtcInTimeZone(zone.LastReset, timeZone) ?? zone.LastReset;
+  return (
+    <div className="space-y-1.5 rounded-md border border-border bg-background/60 p-2">
+      <div>
+        <p className="text-sm font-semibold leading-tight text-foreground">
+          {zone.ZoneName}
+        </p>
+        <p className="font-mono text-xs text-muted-foreground">
+          Zone #{zone.Id}
+        </p>
+      </div>
+      <ZoneRow label="Last Reset" value={lastReset} />
+      <ZoneRow label="Reset By" value={zone.ResetBy} />
+      <ZoneRow label="Reset Device" value={zone.ResetDeviceId} />
+      <ZoneRow label="Reset Status" value={zone.ResetStatus} />
+    </div>
+  );
+}
+
 export function StoreDetailsCard({ store }: { store: StoreDetails }) {
+  const { zones, isLoading, error } = useStockroomZonesByStore(store.StoreId);
+  const sortedZones = useMemo(
+    () => [...zones].sort((a, b) => a.ZoneName.localeCompare(b.ZoneName)),
+    [zones],
+  );
+
   return (
     <div className="space-y-4 rounded-lg border border-border bg-background/40 p-3">
       <div>
@@ -66,6 +115,38 @@ export function StoreDetailsCard({ store }: { store: StoreDetails }) {
         ) : (
           <p className="text-sm text-muted-foreground">
             No opening hours available.
+          </p>
+        )}
+      </Section>
+
+      <Section
+        icon={<Warehouse className="h-3.5 w-3.5" />}
+        title="Stockroom Zones"
+      >
+        {isLoading ? (
+          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+            <LoadingSpinner />
+            Loading zones…
+          </div>
+        ) : error ? (
+          <div className="rounded-lg border border-destructive/40 bg-destructive/5 p-2 text-sm text-destructive">
+            <div className="mb-1 flex items-center gap-2 font-medium">
+              <TriangleAlert className="h-4 w-4" />
+              Failed to load zones
+            </div>
+            <p className="text-xs break-words text-destructive/90">
+              {error.message}
+            </p>
+          </div>
+        ) : sortedZones.length > 0 ? (
+          <div className="space-y-2">
+            {sortedZones.map((zone) => (
+              <ZoneCard key={zone.Id} zone={zone} timeZone={store.TimeZone} />
+            ))}
+          </div>
+        ) : (
+          <p className="text-sm text-muted-foreground">
+            No stockroom zones found.
           </p>
         )}
       </Section>
