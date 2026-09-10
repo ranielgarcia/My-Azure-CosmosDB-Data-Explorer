@@ -6,15 +6,14 @@ Guidance for AI coding agents working in this repository.
 
 **Scaffolded.** The application lives at the **repo root**: the React app source is in `src/`, the
 Express proxy is in `server/`, and all config (`package.json`, `vite.config.ts`, `tsconfig*.json`)
-sits at the root. (Earlier drafts referenced a `kleene-cosmos-db-data-explorer/` subfolder; that was
-dropped in favour of the repo root.)
+sits at the root.
 
 **Read these first (authoritative spec):**
 
 - [implementation-plan.md](implementation-plan.md) — full folder structure, phase-by-phase build
-  steps, config files, and a verification checklist. This is the source of truth for *how* to build.
+  steps, config files, and a verification checklist. This is the source of truth for _how_ to build.
 - [react-cosmos-db-data-explorer-app-plan.md](react-cosmos-db-data-explorer-app-plan.md) — product
-  requirements, UI layout, and functional scope. The source of truth for *what* to build.
+  requirements, UI layout, and functional scope. The source of truth for _what_ to build.
 
 Do not duplicate those documents here; follow and update them.
 
@@ -34,7 +33,7 @@ TanStack Query v5 · Zustand · Express + `tsx` proxy · `@azure/cosmos` · `@az
 - **Cosmos SDK is backend-only.** Never import `@azure/cosmos` or `@azure/identity` in `src/`. The
   browser talks only to `/api/*` via `src/services/cosmos/api.ts`. Credentials must never reach the client.
 - **Read-only enforcement lives in the proxy.** `POST /api/.../query` rejects queries whose text —
-  after trimming whitespace and stripping leading SQL comments — *starts* (case-insensitively) with
+  after trimming whitespace and stripping leading SQL comments — _starts_ (case-insensitively) with
   `INSERT`, `DELETE`, `UPSERT`, `REPLACE`, `UPDATE`, or `MERGE` → HTTP 400. Matching only at the start
   avoids false positives on SELECTs that mention those words in string literals or field names. Pair
   it operationally with a read-only key / data-plane RBAC role. Logic lives in `server/readOnlyGuard.ts`.
@@ -75,9 +74,11 @@ Run from the **repo root**:
 
 ## Query results & pagination
 
-Queries are fetched **one page at a time** (`maxItemCount` 100) using continuation tokens. The proxy
-returns `{ items, count, requestCharge, continuationToken | null }`. The client **appends** each page
-(infinite-scroll style) and accumulates the RU charge; *Load more* is shown while a continuation
+Each API query response contains **up to `maxItemCount` matching items** (default 100). The proxy
+follows Cosmos continuation tokens internally across empty or partial SDK pages, reducing each
+subsequent request to the response's remaining capacity. It returns
+`{ items, count, requestCharge, continuationToken | null }`, with RU charge accumulated across all
+internal requests. The client **appends** each API page; _Load more_ is shown while a continuation
 token exists and hidden once it is `null`. Re-running a query **resets** the accumulated items/token.
 
 ## Out of scope for v1
@@ -96,7 +97,7 @@ self-contained in `server/cosmosClient.ts`:
   `COSMOS_KEY`) or `azure-cli` (uses `COSMOS_ENDPOINT` + `DefaultAzureCredential`).
 - Required env vars are validated on server startup; a missing value fails fast with a clear message.
 - Databases are listed via `cosmosClient.databases.readAll()`, containers via
-  `cosmosClient.database(dbId).containers.readAll()`, and queries via
-  `container.items.query(spec, { maxItemCount, continuationToken }).fetchNext()` — one page per
-  request, returning that page's `requestCharge` and next `continuationToken`.
+  `cosmosClient.database(dbId).containers.readAll()`, and queries via repeated
+  `container.items.query(spec, { maxItemCount: remaining, continuationToken }).fetchNext()` calls
+  until the API response reaches its item limit or Cosmos is exhausted.
 - Pinned versions: `@azure/cosmos ^4.3.0`, `@azure/identity ^4.10.0`, `dotenv ^16.5.0`.

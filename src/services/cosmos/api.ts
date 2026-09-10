@@ -69,3 +69,21 @@ export async function saveTabSession(session: TabSession): Promise<void> {
     body: JSON.stringify(session),
   });
 }
+
+export async function clearTabSession(): Promise<void> {
+  await request<void>("/tabs", { method: "DELETE" });
+}
+
+export async function fetchSelectedStore(): Promise<string | null> {
+  const { storeId } = await request<{ storeId: string | null }>(
+    "/selected-store",
+  );
+  return storeId;
+}
+
+export async function saveSelectedStore(storeId: string | null): Promise<void> {
+  await request<{ storeId: string | null }>("/selected-store", {
+    method: "PUT",
+    body: JSON.stringify({ storeId }),
+  });
+}

@@ -1,8 +1,8 @@
 import { useState, useEffect, useMemo, useRef } from "react";
-import { Bookmark } from "lucide-react";
+import { Braces, Table2 } from "lucide-react";
 import { useTabStore } from "@/store/tabStore";
 import { useExecuteQuery } from "@/hooks/useExecuteQuery";
-import type { TabState } from "@/types/tabs";
+import type { QueryWorkspaceState } from "@/types/tabs";
 import { extractDocumentFields } from "@/lib/queryFields";
 import { QueryEditor } from "./QueryEditor";
 import { ExecuteButton } from "./ExecuteButton";
@@ -12,8 +12,9 @@ import { ResizeHandle } from "@/components/ResizeHandle";
 import { Button } from "@/components/ui/button";
 import { MIN_QUERY_EDITOR_HEIGHT, useLayoutStore } from "@/store/layoutStore";
 
-export function QueryPanel({ tab }: { tab: TabState }) {
+export function QueryPanel({ tab }: { tab: QueryWorkspaceState }) {
   const updateQuery = useTabStore((s) => s.updateQuery);
+  const setResultDisplayMode = useTabStore((s) => s.setResultDisplayMode);
   const { runQuery, loadMore, isPending } = useExecuteQuery();
   const [cursor, setCursor] = useState({ line: 1, col: 1 });
   const containerRef = useRef<HTMLDivElement>(null);
@@ -24,8 +25,6 @@ export function QueryPanel({ tab }: { tab: TabState }) {
   const resetQueryEditorHeight = useLayoutStore(
     (s) => s.resetQueryEditorHeight,
   );
-  const savedQueriesOpen = useLayoutStore((s) => s.savedQueriesOpen);
-  const toggleSavedQueries = useLayoutStore((s) => s.toggleSavedQueries);
 
   const handleEditorDelta = (dy: number) => {
     const containerHeight = containerRef.current?.clientHeight ?? 600;
@@ -51,24 +50,38 @@ export function QueryPanel({ tab }: { tab: TabState }) {
       className="flex flex-1 flex-col overflow-hidden bg-background"
     >
       {/* Editor toolbar */}
-      <div className="flex items-center justify-between gap-2 border-b border-border bg-card/50 px-4 py-2.5">
-        <span className="truncate font-mono text-xs text-muted-foreground">
+      <div className="query-toolbar flex items-center justify-between gap-2 border-b border-border bg-card/50 px-4 py-2.5">
+        <span className="query-context-label truncate font-mono text-xs text-muted-foreground">
           {tab.label}
         </span>
         <div className="flex items-center gap-3">
-          <span className="font-mono text-xs text-muted-foreground/60 tabular-nums">
+          <span className="query-cursor font-mono text-xs text-muted-foreground/60 tabular-nums">
             Ln {cursor.line}, Col {cursor.col}
           </span>
           <SaveQueryButton tab={tab} />
           <Button
-            variant={savedQueriesOpen ? "secondary" : "outline"}
+            type="button"
+            variant="outline"
             size="sm"
-            onClick={toggleSavedQueries}
-            title="Show saved queries for this container"
-            aria-pressed={savedQueriesOpen}
+            onClick={() =>
+              setResultDisplayMode(
+                tab.id,
+                tab.resultDisplayMode === "json" ? "table" : "json",
+              )
+            }
+            aria-pressed={tab.resultDisplayMode === "table"}
+            title={
+              tab.resultDisplayMode === "json"
+                ? "Show results as a table"
+                : "Show results as a JSON array"
+            }
           >
-            <Bookmark className="h-3.5 w-3.5" />
-            Saved
+            {tab.resultDisplayMode === "json" ? (
+              <Table2 className="h-3.5 w-3.5" />
+            ) : (
+              <Braces className="h-3.5 w-3.5" />
+            )}
+            {tab.resultDisplayMode === "json" ? "Table" : "JSON"}
           </Button>
           <ExecuteButton
             onExecute={() => runQuery(tab, getSelectedTextRef.current())}

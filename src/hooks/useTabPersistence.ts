@@ -1,22 +1,41 @@
 import { useEffect } from "react";
-import { fetchTabSession, saveTabSession } from "@/services/cosmos/api";
+import {
+  clearTabSession,
+  fetchTabSession,
+  saveTabSession,
+} from "@/services/cosmos/api";
 import { useTabStore } from "@/store/tabStore";
-import type { TabSession, TabState } from "@/types/tabs";
+import type { PaneState, TabSession, TabState } from "@/types/tabs";
 
 const SAVE_DEBOUNCE_MS = 1000;
+const HYDRATION_RETRY_MS = 1000;
 const BASE_URL = import.meta.env.VITE_API_BASE_URL ?? "/api";
 
 /** Extract the durable snapshot persisted server-side (results are excluded). */
-function toSession(tabs: TabState[], activeTabId: string | null): TabSession {
+export function toSession(
+  tabs: TabState[],
+  panes: PaneState[],
+  activePaneId: string | null,
+): TabSession {
   return {
     tabs: tabs.map((tab) => ({
       id: tab.id,
       databaseId: tab.databaseId,
       containerId: tab.containerId,
       label: tab.label,
-      query: tab.query,
+      subtabs: tab.subtabs.map(
+        ({ id, name, query, resultDisplayMode, resultColumns }) => ({
+          id,
+          name,
+          query,
+          resultDisplayMode,
+          resultColumns,
+        }),
+      ),
+      activeSubtabId: tab.activeSubtabId,
     })),
-    activeTabId,
+    panes,
+    activePaneId,
   };
 }
 
@@ -31,17 +50,24 @@ export function useTabPersistence(): boolean {
   // Hydrate once from the server.
   useEffect(() => {
     let cancelled = false;
-    fetchTabSession()
-      .then((session) => {
-        if (!cancelled) useTabStore.getState().hydrate(session);
-      })
-      .catch(() => {
-        // Persistence is best-effort; start with an empty session on failure.
-        if (!cancelled)
-          useTabStore.getState().hydrate({ tabs: [], activeTabId: null });
-      });
+    let retryTimer: ReturnType<typeof setTimeout> | undefined;
+
+    const hydrate = () => {
+      void fetchTabSession()
+        .then((session) => {
+          if (!cancelled) useTabStore.getState().hydrate(session);
+        })
+        .catch(() => {
+          // A transient proxy restart is not an authoritative empty session.
+          // Keep autosave disabled until a successful hydration completes.
+          if (!cancelled) retryTimer = setTimeout(hydrate, HYDRATION_RETRY_MS);
+        });
+    };
+
+    hydrate();
     return () => {
       cancelled = true;
+      if (retryTimer) clearTimeout(retryTimer);
     };
   }, []);
 
@@ -51,34 +77,53 @@ export function useTabPersistence(): boolean {
 
     let timer: ReturnType<typeof setTimeout> | undefined;
 
-    const scheduleSave = (tabs: TabState[], activeTabId: string | null) => {
+    const scheduleSave = (
+      tabs: TabState[],
+      panes: PaneState[],
+      activePaneId: string | null,
+    ) => {
       if (timer) clearTimeout(timer);
       timer = setTimeout(() => {
-        void saveTabSession(toSession(tabs, activeTabId)).catch(() => {
-          // Best-effort autosave; ignore transient failures.
-        });
+        if (tabs.length === 0) {
+          void clearTabSession().catch(() => {
+            // Best-effort autosave; ignore transient failures.
+          });
+        } else {
+          void saveTabSession(toSession(tabs, panes, activePaneId)).catch(
+            () => {
+              // Best-effort autosave; ignore transient failures.
+            },
+          );
+        }
       }, SAVE_DEBOUNCE_MS);
     };
 
     const unsubscribe = useTabStore.subscribe((state, prev) => {
       // Only persist when the durable snapshot could have changed.
-      if (state.tabs === prev.tabs && state.activeTabId === prev.activeTabId) {
+      if (
+        state.tabs === prev.tabs &&
+        state.panes === prev.panes &&
+        state.activePaneId === prev.activePaneId
+      ) {
         return;
       }
-      scheduleSave(state.tabs, state.activeTabId);
+      scheduleSave(state.tabs, state.panes, state.activePaneId);
     });
 
     const flushOnUnload = () => {
       if (timer) clearTimeout(timer);
-      const { tabs, activeTabId } = useTabStore.getState();
-      const body = JSON.stringify(toSession(tabs, activeTabId));
+      const { tabs, panes, activePaneId } = useTabStore.getState();
       // keepalive lets the request outlive the unloading page.
-      void fetch(`${BASE_URL}/tabs`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body,
-        keepalive: true,
-      }).catch(() => {
+      const request =
+        tabs.length === 0
+          ? fetch(`${BASE_URL}/tabs`, { method: "DELETE", keepalive: true })
+          : fetch(`${BASE_URL}/tabs`, {
+              method: "PUT",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify(toSession(tabs, panes, activePaneId)),
+              keepalive: true,
+            });
+      void request.catch(() => {
         // Ignore — the debounced save has likely already persisted state.
       });
     };

@@ -1,13 +1,15 @@
 import { Play } from "lucide-react";
-import type { TabState } from "@/types/tabs";
+import type { QueryWorkspaceState } from "@/types/tabs";
 import { EmptyState } from "@/components/EmptyState";
 import { LoadingSpinner } from "@/components/LoadingSpinner";
 import { Button } from "@/components/ui/button";
+import { useTabStore } from "@/store/tabStore";
 import { ErrorBanner } from "./ErrorBanner";
 import { JsonViewer } from "./JsonViewer";
+import { TableResultsViewer } from "./TableResultsViewer";
 
 interface ResultsPanelProps {
-  tab: TabState;
+  tab: QueryWorkspaceState;
   onLoadMore: () => void;
   isLoadingMore: boolean;
 }
@@ -17,7 +19,15 @@ export function ResultsPanel({
   onLoadMore,
   isLoadingMore,
 }: ResultsPanelProps) {
-  const { results, error, isLoading } = tab;
+  const {
+    results,
+    error,
+    isLoading,
+    parentTabId,
+    resultDisplayMode,
+    resultColumns,
+  } = tab;
+  const setResultColumns = useTabStore((state) => state.setResultColumns);
 
   // Fresh run in progress (no results yet).
   if (isLoading && !results) {
@@ -47,7 +57,7 @@ export function ResultsPanel({
     );
   }
 
-  if (results.count === 0) {
+  if (results.count === 0 && !results.continuationToken) {
     return (
       <EmptyState
         title="No documents matched"
@@ -59,7 +69,17 @@ export function ResultsPanel({
   return (
     <div className="flex flex-1 flex-col overflow-hidden">
       <div className="min-h-0 flex-1">
-        <JsonViewer data={results.items} />
+        {resultDisplayMode === "table" ? (
+          <TableResultsViewer
+            items={results.items}
+            tabId={parentTabId}
+            subtabId={tab.id}
+            selectedColumns={resultColumns}
+            onColumnsChange={(columns) => setResultColumns(tab.id, columns)}
+          />
+        ) : (
+          <JsonViewer data={results.items} tabId={parentTabId} />
+        )}
       </div>
       {results.continuationToken ? (
         <div className="flex shrink-0 justify-center border-t border-border bg-muted/30 py-2">

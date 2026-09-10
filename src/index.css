@@ -1,5 +1,36 @@
 @import "tailwindcss";
 
+.query-pane {
+  container-type: inline-size;
+}
+
+@container (max-width: 430px) {
+  .query-toolbar {
+    justify-content: flex-end;
+  }
+
+  .query-context-label,
+  .query-cursor {
+    display: none;
+  }
+}
+
+@container (max-width: 700px) {
+  .result-detail-pane {
+    position: absolute;
+    inset-block: 0;
+    right: 0;
+    width: min(100%, 430px);
+    min-width: 0;
+    z-index: 20;
+    box-shadow: -12px 0 24px hsl(222 47% 6% / 0.22);
+  }
+
+  .result-detail-pane.result-detail-empty {
+    display: none;
+  }
+}
+
 @custom-variant dark (&:is(.dark *));
 
 :root {
@@ -147,7 +178,7 @@ button,
 }
 
 /* Monaco JSON viewer — UTC date annotation injected text */
-.date-annotation {
+.data-annotation {
   font-style: italic;
   opacity: 0.5;
   user-select: none;

@@ -1,11 +1,9 @@
 # Dependencies
 node_modules/
-kleene-cosmos-db-data-explorer/node_modules/
 
 # Build outputs
 dist/
 build/
-kleene-cosmos-db-data-explorer/dist/
 server/dist/
 
 # Vite cache

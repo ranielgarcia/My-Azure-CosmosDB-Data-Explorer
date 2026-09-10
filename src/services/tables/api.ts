@@ -1,5 +1,6 @@
 import type { StoreDetails, StoreSummary } from "@/types/siteLocation";
 import type { QueryError } from "@/types/cosmos";
+import type { StockroomZone } from "@/types/stockroomZones";
 
 const BASE_URL = import.meta.env.VITE_API_BASE_URL ?? "/api";
 
@@ -44,4 +45,39 @@ export async function refreshStores(): Promise<{ count: number }> {
   return request<{ count: number }>("/tables/site-location/refresh", {
     method: "POST",
   });
+}
+
+interface StockroomZonesResponse {
+  items: StockroomZone[];
+  count: number;
+}
+
+export async function fetchStockroomZonesByPartitionKeys(
+  partitionKeys: string[],
+  signal?: AbortSignal,
+): Promise<StockroomZone[]> {
+  const response = await request<StockroomZonesResponse>(
+    "/tables/stockroom-zones/by-partition-keys",
+    {
+      method: "POST",
+      body: JSON.stringify({ partitionKeys }),
+      signal,
+    },
+  );
+  return response.items;
+}
+
+export async function fetchStockroomZonesByIds(
+  ids: string[],
+  signal?: AbortSignal,
+): Promise<StockroomZone[]> {
+  const response = await request<StockroomZonesResponse>(
+    "/tables/stockroom-zones/by-ids",
+    {
+      method: "POST",
+      body: JSON.stringify({ ids }),
+      signal,
+    },
+  );
+  return response.items;
 }

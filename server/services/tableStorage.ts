@@ -19,6 +19,8 @@ export interface TableService<T extends object> {
   ): Promise<GetTableEntityResponse<TableEntityResult<T>>>;
   /** Iterate every entity in the table, materialised into an array. */
   listEntities(): Promise<TableEntityResult<T>[]>;
+  /** Iterate entities matching a server-side OData filter. */
+  listEntitiesByFilter(filter: string): Promise<TableEntityResult<T>[]>;
 }
 
 export function createTableService<T extends object>(
@@ -34,6 +36,16 @@ export function createTableService<T extends object>(
     async listEntities() {
       const results: TableEntityResult<T>[] = [];
       for await (const entity of client.listEntities<T>()) {
+        results.push(entity);
+      }
+      return results;
+    },
+
+    async listEntitiesByFilter(filter) {
+      const results: TableEntityResult<T>[] = [];
+      for await (const entity of client.listEntities<T>({
+        queryOptions: { filter },
+      })) {
         results.push(entity);
       }
       return results;

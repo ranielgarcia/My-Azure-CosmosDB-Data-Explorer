@@ -30,7 +30,7 @@ the browser. Authentication is handled entirely in `server/cosmosClient.ts`, whi
 
 ## Folder Structure
 
-Everything lives at the **repo root** (the tree's root below *is* the repo root, not a nested `src/`).
+Everything lives at the **repo root** (the tree's root below _is_ the repo root, not a nested `src/`).
 
 ```
 <repo root>/
@@ -152,22 +152,28 @@ The Express proxy wraps all Cosmos SDK calls. The React app never holds Cosmos c
 Self-contained factory that validates env vars on startup and selects one of two auth modes:
 
 ```typescript
-import { CosmosClient } from '@azure/cosmos';
-import { DefaultAzureCredential } from '@azure/identity';
-import 'dotenv/config';
+import { CosmosClient } from "@azure/cosmos";
+import { DefaultAzureCredential } from "@azure/identity";
+import "dotenv/config";
 
 const { COSMOS_ENDPOINT, COSMOS_KEY, COSMOS_AUTH_MODE } = process.env;
 
 // Fail fast with a clear message if required env vars are missing.
-if (!COSMOS_ENDPOINT) throw new Error('COSMOS_ENDPOINT is required');
-if (!COSMOS_AUTH_MODE) throw new Error('COSMOS_AUTH_MODE is required (connection-string | azure-cli)');
+if (!COSMOS_ENDPOINT) throw new Error("COSMOS_ENDPOINT is required");
+if (!COSMOS_AUTH_MODE)
+  throw new Error(
+    "COSMOS_AUTH_MODE is required (connection-string | azure-cli)",
+  );
 
 function createClient(): CosmosClient {
-  if (COSMOS_AUTH_MODE === 'connection-string') {
-    if (!COSMOS_KEY) throw new Error('COSMOS_KEY is required when COSMOS_AUTH_MODE=connection-string');
+  if (COSMOS_AUTH_MODE === "connection-string") {
+    if (!COSMOS_KEY)
+      throw new Error(
+        "COSMOS_KEY is required when COSMOS_AUTH_MODE=connection-string",
+      );
     return new CosmosClient({ endpoint: COSMOS_ENDPOINT!, key: COSMOS_KEY });
   }
-  if (COSMOS_AUTH_MODE === 'azure-cli') {
+  if (COSMOS_AUTH_MODE === "azure-cli") {
     return new CosmosClient({
       endpoint: COSMOS_ENDPOINT!,
       aadCredentials: new DefaultAzureCredential(),
@@ -218,23 +224,41 @@ Body: { query: string, parameters?: SqlParameter[], maxItemCount?: number, conti
 ```
 
 - **Read-only enforcement** (`server/readOnlyGuard.ts` → `isMutatingQuery`): rejects queries whose
-  text — after trimming whitespace and stripping leading SQL comments — *starts* (case-insensitively)
+  text — after trimming whitespace and stripping leading SQL comments — _starts_ (case-insensitively)
   with `INSERT`, `DELETE`, `UPSERT`, `REPLACE`, `UPDATE`, or `MERGE` → HTTP 400. Start-anchoring
   avoids false positives on SELECTs that merely mention those words in string literals/field names.
-- Fetches **one page** via `fetchNext()` using `maxItemCount` (default 100) and the optional
-  `continuationToken`, returning that page's `requestCharge` and the next `continuationToken`
-  (`null` when exhausted). The client appends pages and accumulates RU.
+- Returns **up to `maxItemCount` matching items** (default 100). The proxy follows continuation
+  tokens internally across empty or partial Cosmos pages, setting each SDK request's
+  `maxItemCount` to the response's remaining capacity. It accumulates request charge across those
+  SDK pages and returns the latest `continuationToken` (`null` when exhausted). The client appends
+  API pages and accumulates RU.
 
 ```typescript
 const container = cosmosClient.database(dbId).container(containerId);
-const options = { maxItemCount: maxItemCount ?? 100, continuationToken };
-const page = await container.items.query({ query, parameters }, options).fetchNext();
+const limit = maxItemCount ?? 100;
+const items = [];
+let requestCharge = 0;
+let nextToken = continuationToken;
+
+while (items.length < limit) {
+  const page = await container.items
+    .query(
+      { query, parameters },
+      { maxItemCount: limit - items.length, continuationToken: nextToken },
+    )
+    .fetchNext();
+
+  items.push(...page.resources);
+  requestCharge += page.requestCharge;
+  nextToken = page.hasMoreResults ? page.continuationToken : undefined;
+  if (!nextToken) break;
+}
 
 return {
-  items: page.resources,
-  count: page.resources.length,
-  requestCharge: page.requestCharge,
-  continuationToken: page.hasMoreResults ? page.continuationToken : null,
+  items,
+  count: items.length,
+  requestCharge,
+  continuationToken: nextToken ?? null,
 };
 ```
 
@@ -280,10 +304,24 @@ interface TabState {
   databaseId: string;
   containerId: string;
   label: string; // displayed as: `databaseId / containerId`
-  query: string; // current text in the query editor
+  subtabs: SubtabState[];
+  activeSubtabId: string;
+}
+interface SubtabState {
+  id: string;
+  name: string;
+  query: string;
+  resultDisplayMode: "json" | "table";
+  resultColumns: string[];
   results: QueryResult | null;
   error: QueryError | null;
   isLoading: boolean;
+}
+interface PaneState {
+  id: string;
+  tabIds: string[];
+  activeTabId: string;
+  width: number;
 }
 ```
 
@@ -329,26 +367,34 @@ Actions
 
 ```
 State
-  tabs        : TabState[]
-  activeTabId : string | null
+  tabs         : TabState[]
+  panes        : PaneState[]
+  activePaneId : string | null
 
 Actions
   openTab(dbId, containerId)     — idempotent: activate existing or push new tab
-                                   new tabs default to query "SELECT * FROM c"
-  closeTab(id)                   — remove tab; activate adjacent tab or null
-  setActiveTab(id)
-  updateQuery(tabId, query)
-  setTabLoading(tabId, isLoading)
-  setTabError(tabId, error)
-  applyQueryResult(tabId, result, mode)
+                                   new tabs contain one "Query 1" subtab
+  closeTab(id)                   — remove parent tab and empty owning pane
+  addSubtab / renameSubtab / closeSubtab / setActiveSubtab
+  moveTab / splitTab             — parent tabs only; maximum three panes
+  updateQuery(subtabId, query)
+  setResultDisplayMode(subtabId, mode)
+  setResultColumns(subtabId, columns)
+  setTabLoading(subtabId, isLoading)
+  setTabError(subtabId, error)
+  applyQueryResult(subtabId, result, mode)
                                  — mode 'replace' (fresh run): results become this page, RU resets
                                  — mode 'append'  (load more): items appended, RU accumulated,
                                    continuation token advanced
 ```
 
-`TabState.results` (`QueryResult | null`) holds the cumulative items, running `requestCharge`, and the
+`SubtabState.results` (`QueryResult | null`) holds the cumulative items, running `requestCharge`, and the
 next-page `continuationToken` (null when exhausted). Re-running a query uses `replace` (resetting
-items/RU); *Load more* uses `append`.
+items/RU); _Load more_ uses `append`.
+
+Each query subtab also persists its result display mode and configured table columns. Query result
+data and the currently selected table row remain memory-only. Table columns are derived from
+top-level properties in first-seen order and initially default to `id` plus the first other property.
 
 `openTab` generates `id = "${dbId}__${containerId}"`. If a tab with that id already exists it simply
 activates it; otherwise it appends a new `TabState`.
@@ -375,8 +421,12 @@ AppLayout                          (flex h-screen bg-background)
 │   ├── PanelHeader                (title "Cosmos Explorer" + RefreshButton)
 │   └── DatabaseTree
 └── MainArea                       (flex-1 flex-col overflow-hidden)
-    ├── TabBar                     (shown only when tabs > 0)
-    └── TabContent  |  EmptyState  (flex-1)
+  ├── Pane ×1..3                 (horizontal, resizable)
+  │   ├── TabBar                 (draggable database/container tabs)
+  │   └── TabContent
+  │       ├── SubtabBar          (named query workspaces)
+  │       └── QueryPanel
+  └── EmptyState                 (shown when no tabs exist)
 ```
 
 ### Left panel
@@ -393,18 +443,26 @@ DatabaseTree
 ### Main area
 
 ```
-TabBar
-└── TabHandle  ×N   (active tab has accent border-bottom; × close button)
+Pane ×1..3
+├── TabBar
+│   └── TabHandle ×N   (sortable/movable parent tabs; close and split actions)
+└── TabContent
+  ├── SubtabBar       (add, activate, inline rename, close)
+  └── QueryPanel      (active subtab)
 
-TabContent  (keyed by activeTabId to preserve editor DOM state)
+TabContent  (keyed by activeSubtabId to isolate editor DOM state)
 └── QueryPanel
     ├── QueryEditor        (Monaco editor, SQL syntax highlighting, Ctrl+Enter triggers execution)
+    ├── ResultModeButton   (toggles JSON array / table beside Execute)
     ├── ExecuteButton      (shadcn Button; shows Loader2 icon while loading)
     ├── StatusBar          (item count + RU charge; visible after successful query)
     └── ResultsPanel
         ├── [loading]  LoadingSpinner / Skeleton rows
         ├── [error]    ErrorBanner  (shadcn Alert destructive; message + optional code)
-        ├── [results]  JsonViewer   (highlight.js <pre>; CopyButton top-right)
+        ├── [JSON]     JsonViewer   (Monaco read-only JSON; CopyButton top-right)
+        ├── [table]    TableResultsViewer
+        │              ├── ResultColumnPicker (searchable top-level columns)
+        │              └── selected-item JsonViewer (right-side detail pane)
         └── [empty]    EmptyState   ("Run a query to see results")
 ```
 
@@ -491,7 +549,7 @@ server/dist/
 3. Left panel renders the database tree; each database is collapsible.
 4. Clicking a container opens a new tab pre-filled with `SELECT * FROM c`.
 5. Clicking the same container again activates the existing tab (idempotent — no duplicate tabs).
-6. Pressing "Execute" or `Ctrl+Enter` runs the query; results appear in the JSON viewer.
+6. Pressing "Execute" or `Ctrl+Enter` runs the query; results appear in the JSON viewer by default.
 7. Multiple tabs can be open simultaneously; switching between them preserves each tab's query text and results independently.
 8. Closing a tab removes it; closing the last tab shows `EmptyState` in the main area.
 9. A query error displays `ErrorBanner` with the message and HTTP code.
@@ -499,34 +557,39 @@ server/dist/
 11. The copy-to-clipboard button writes the full (loaded) results JSON to the clipboard.
 12. Dark mode is active by default on load with no white flash.
 13. Both `connection-string` and `azure-cli` auth modes work when configured in `.env`.
-14. After a query with more than one page, *Load more* appends the next page and the status bar's item count + RU accumulate; it disappears once the continuation token is `null`.
+14. After a query with more than one page, _Load more_ appends the next page and the status bar's item count + RU accumulate; it disappears once the continuation token is `null`.
 15. `npm test` passes (read-only guard, tab store append/reset + idempotency, api error mapping).
+16. The button beside Execute switches between the complete JSON array and table modes without rerunning the query.
+17. Table mode defaults to `id` plus the first other top-level property, supports configurable columns, and opens a selected item's complete JSON in the right-side detail pane.
+18. Result mode and configured columns remain isolated per query subtab and survive reload; result rows and selected-item state do not persist.
 
 ---
 
 ## Key Decisions
 
-| Decision                                      | Rationale                                                                   |
-| --------------------------------------------- | --------------------------------------------------------------------------- |
-| Express backend proxy is required             | Cosmos SDK cannot run in the browser; credentials must never be client-side |
-| Read-only enforcement at the proxy            | Prevents accidental data mutation from the UI                               |
-| Both `connection-string` and `azure-cli` auth | Covers local dev (key) and Azure-hosted (managed identity / CLI) scenarios |
-| Zustand for client state                      | Lightweight, zero boilerplate, integrates cleanly with React Query          |
-| Monaco editor for the query editor            | SQL syntax highlighting, line numbers, and Ctrl/Cmd+Enter to run; theme follows the app |
+| Decision                                      | Rationale                                                                                |
+| --------------------------------------------- | ---------------------------------------------------------------------------------------- |
+| Express backend proxy is required             | Cosmos SDK cannot run in the browser; credentials must never be client-side              |
+| Read-only enforcement at the proxy            | Prevents accidental data mutation from the UI                                            |
+| Both `connection-string` and `azure-cli` auth | Covers local dev (key) and Azure-hosted (managed identity / CLI) scenarios               |
+| Zustand for client state                      | Lightweight, zero boilerplate, integrates cleanly with React Query                       |
+| Monaco editor for the query editor            | SQL syntax highlighting, line numbers, and Ctrl/Cmd+Enter to run; theme follows the app  |
 | Light + dark themes with persisted toggle     | System default (`prefers-color-scheme`); choice saved to `localStorage` (`cosmos-theme`) |
-| Append-style pagination (continuation tokens) | One page (100 items) per request; *Load more* appends and accumulates RU     |
+| Append-style pagination (continuation tokens) | Up to 100 matches per API request; _Load more_ appends and accumulates RU                |
+| Per-query JSON/table result modes             | Compact scanning plus full-object inspection without changing the query                  |
 
 ---
 
 ## Future Enhancements (out of v1 scope)
 
 1. **Monaco IntelliSense** — schema-aware autocompletion in the query editor (Monaco itself is now in v1).
-2. **Prev/Next page navigation & result virtualization** — append-style *Load more* pagination is
+2. **Prev/Next page navigation & result virtualization** — append-style _Load more_ pagination is
    already in v1; classic paging and virtualized rendering of very large result sets are future work.
 3. **Document CRUD** — create, edit, and delete individual documents directly from the UI.
 4. **Light mode / theme toggle** — user-controlled colour scheme preference.
 5. **Query history** — persist recently executed queries per container across sessions.
 6. **Query cancellation** — abort in-flight requests via `AbortController`.
+7. **Result sorting and filtering** — table mode currently displays query order without client-side transforms.
 
 ---
 
@@ -534,15 +597,15 @@ server/dist/
 
 All Cosmos connectivity is self-contained in the Express proxy — no external project is required.
 
-| Concern              | Implementation                                                                                     |
-| -------------------- | -------------------------------------------------------------------------------------------------- |
-| CosmosClient         | Single instance in `server/cosmosClient.ts`; two auth modes via `COSMOS_AUTH_MODE`                 |
-| Auth (key)           | `new CosmosClient({ endpoint, key })` when `connection-string`                                      |
-| Auth (identity)      | `new CosmosClient({ endpoint, aadCredentials: new DefaultAzureCredential() })` when `azure-cli`     |
-| Env validation       | Required vars checked on startup; fail fast with a clear message                                    |
-| List databases       | `cosmosClient.databases.readAll().fetchAll()`                                                       |
-| List containers      | `cosmosClient.database(dbId).containers.readAll().fetchAll()`                                        |
-| Execute query        | `container.items.query(spec, { maxItemCount, continuationToken }).fetchNext()`; one page per request |
-| Read-only guard      | `isMutatingQuery` rejects start-anchored `INSERT`/`DELETE`/`UPSERT`/`REPLACE`/`UPDATE`/`MERGE` → 400  |
+| Concern         | Implementation                                                                                         |
+| --------------- | ------------------------------------------------------------------------------------------------------ |
+| CosmosClient    | Single instance in `server/cosmosClient.ts`; two auth modes via `COSMOS_AUTH_MODE`                     |
+| Auth (key)      | `new CosmosClient({ endpoint, key })` when `connection-string`                                         |
+| Auth (identity) | `new CosmosClient({ endpoint, aadCredentials: new DefaultAzureCredential() })` when `azure-cli`        |
+| Env validation  | Required vars checked on startup; fail fast with a clear message                                       |
+| List databases  | `cosmosClient.databases.readAll().fetchAll()`                                                          |
+| List containers | `cosmosClient.database(dbId).containers.readAll().fetchAll()`                                          |
+| Execute query   | Repeated `fetchNext()` calls fill up to `maxItemCount`; each call uses the remaining response capacity |
+| Read-only guard | `isMutatingQuery` rejects start-anchored `INSERT`/`DELETE`/`UPSERT`/`REPLACE`/`UPDATE`/`MERGE` → 400   |
 
 Pinned dependency versions: `@azure/cosmos ^4.3.0`, `@azure/identity ^4.10.0`, `dotenv ^16.5.0`.

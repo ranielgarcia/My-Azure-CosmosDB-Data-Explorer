@@ -2,10 +2,10 @@ import { Save } from "lucide-react";
 import { useSaveQuery } from "@/hooks/useSavedQueries";
 import { LoadingSpinner } from "@/components/LoadingSpinner";
 import { Button } from "@/components/ui/button";
-import type { TabState } from "@/types/tabs";
+import type { QueryWorkspaceState } from "@/types/tabs";
 
 interface SaveQueryButtonProps {
-  tab: TabState;
+  tab: QueryWorkspaceState;
 }
 
 export function SaveQueryButton({ tab }: SaveQueryButtonProps) {
