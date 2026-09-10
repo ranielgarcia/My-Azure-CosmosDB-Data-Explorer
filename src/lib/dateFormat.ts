@@ -1,9 +1,10 @@
 /**
- * Matches an ISO 8601 UTC timestamp (must end in `Z`), e.g.
- * `2025-04-30T17:00:00Z` or `2025-04-30T17:00:00.123Z`.
+ * Matches an ISO 8601 timestamp that is either UTC (`Z`) or contains a
+ * timezone offset (`+HH:MM` / `-HH:MM`), e.g.
+ * `2025-04-30T17:00:00Z` or `2026-08-05T11:03:11.0953424+00:00`.
  */
 export const UTC_DATE_REGEX =
-  /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?Z$/;
+  /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?(?:Z|[+-]\d{2}:\d{2})$/;
 
 /** True when `value` is a UTC ISO date string this module can localise. */
 export function isUtcDateString(value: string): boolean {

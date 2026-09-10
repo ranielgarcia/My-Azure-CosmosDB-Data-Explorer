@@ -1,5 +1,10 @@
 import { useRef } from "react";
-import { Database, RefreshCw, TriangleAlert } from "lucide-react";
+import {
+  Database,
+  PanelLeftClose,
+  RefreshCw,
+  TriangleAlert,
+} from "lucide-react";
 import { useDatabases } from "@/hooks/useDatabases";
 import { useRefreshStores } from "@/hooks/useRefreshStores";
 import { DatabaseTree } from "@/features/databases/DatabaseTree";
@@ -29,6 +34,7 @@ export function LeftPanel() {
   const storePanelHeight = useLayoutStore((s) => s.storePanelHeight);
   const setStorePanelHeight = useLayoutStore((s) => s.setStorePanelHeight);
   const resetStorePanelHeight = useLayoutStore((s) => s.resetStorePanelHeight);
+  const setLeftPanelOpen = useLayoutStore((s) => s.setLeftPanelOpen);
   const asideRef = useRef<HTMLElement>(null);
 
   const isRefreshing = isFetching || refreshStores.isPending;
@@ -82,6 +88,15 @@ export function LeftPanel() {
             <RefreshCw
               className={isRefreshing ? "h-4 w-4 animate-spin" : "h-4 w-4"}
             />
+          </Button>
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => setLeftPanelOpen(false)}
+            title="Collapse left panel"
+            aria-label="Collapse left panel"
+          >
+            <PanelLeftClose className="h-4 w-4" />
           </Button>
         </div>
       </div>

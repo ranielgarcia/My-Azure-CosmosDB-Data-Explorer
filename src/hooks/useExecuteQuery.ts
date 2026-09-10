@@ -1,13 +1,14 @@
 import { useMutation } from "@tanstack/react-query";
 import { executeQuery } from "@/services/cosmos";
+import { useSelectedResultStore } from "@/store/selectedResultStore";
 import { useTabStore } from "@/store/tabStore";
 import type { QueryError } from "@/types/cosmos";
-import type { TabState } from "@/types/tabs";
+import type { QueryWorkspaceState } from "@/types/tabs";
 
 const PAGE_SIZE = 100;
 
 interface RunVariables {
-  tab: TabState;
+  tab: QueryWorkspaceState;
   mode: "replace" | "append";
   overrideQuery?: string;
 }
@@ -36,6 +37,10 @@ export function useExecuteQuery() {
     },
     onSuccess: (result, { tab, mode }) => {
       applyQueryResult(tab.id, result, mode);
+      // A fresh run invalidates any previously selected row; "load more" keeps it.
+      if (mode === "replace") {
+        useSelectedResultStore.getState().clearSelection(tab.id);
+      }
     },
     onError: (error, { tab }) => {
       const queryError = error as QueryError;
@@ -47,9 +52,9 @@ export function useExecuteQuery() {
   });
 
   return {
-    runQuery: (tab: TabState, overrideQuery?: string) =>
+    runQuery: (tab: QueryWorkspaceState, overrideQuery?: string) =>
       mutation.mutate({ tab, mode: "replace", overrideQuery }),
-    loadMore: (tab: TabState, overrideQuery?: string) =>
+    loadMore: (tab: QueryWorkspaceState, overrideQuery?: string) =>
       mutation.mutate({ tab, mode: "append", overrideQuery }),
     isPending: mutation.isPending,
   };

@@ -33,6 +33,7 @@ function reset() {
   useLayoutStore.setState({
     sidebarWidth: DEFAULT_SIDEBAR_WIDTH,
     storePanelHeight: DEFAULT_STORE_PANEL_HEIGHT,
+    leftPanelOpen: true,
   });
 }
 
@@ -109,5 +110,19 @@ describe("layoutStore", () => {
     expect(localStorage.getItem("cosmos-right-sidebar-width")).toBe(
       String(MIN_RIGHT_SIDEBAR_WIDTH),
     );
+  });
+
+  it("toggles and persists the left panel open state", () => {
+    const initial = useLayoutStore.getState().leftPanelOpen;
+
+    useLayoutStore.getState().toggleLeftPanel();
+    expect(useLayoutStore.getState().leftPanelOpen).toBe(!initial);
+    expect(localStorage.getItem("cosmos-left-panel-open")).toBe(
+      String(!initial),
+    );
+
+    useLayoutStore.getState().setLeftPanelOpen(false);
+    expect(useLayoutStore.getState().leftPanelOpen).toBe(false);
+    expect(localStorage.getItem("cosmos-left-panel-open")).toBe("false");
   });
 });
