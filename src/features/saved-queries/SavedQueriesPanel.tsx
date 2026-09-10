@@ -51,9 +51,13 @@ export function SavedQueriesPanel() {
   }, [queries, search]);
 
   const handleCopy = async (id: string, query: string) => {
-    await navigator.clipboard.writeText(query);
-    setCopiedId(id);
-    setTimeout(() => setCopiedId(null), 1500);
+    try {
+      await navigator.clipboard.writeText(query);
+      setCopiedId(id);
+      setTimeout(() => setCopiedId(null), 1500);
+    } catch {
+      // Ignore copy failures (permissions / unsupported environment).
+    }
   };
 
   return (

@@ -7,13 +7,13 @@ import {
 import { useSelectedStoreStore } from "@/store/selectedStoreStore";
 import type { QueryError } from "@/types/cosmos";
 import type { StockroomZone } from "@/types/stockroomZones";
-import { STOCKROOM_TAB_ID } from "@/features/query-results/kleene-monaco-data-annotations/containers/stockroom";
+import { STOCKROOM_TAB_ID } from "@/features/query-results/data-annotations/containers/stockroom";
 import {
   batchZoneIds,
   buildZoneLabels,
   collectZoneIds,
   normalizeZoneId,
-} from "@/features/query-results/kleene-monaco-data-annotations/stockroomZoneAnnotations";
+} from "@/features/query-results/data-annotations/stockroomZoneAnnotations";
 
 const ZONE_STALE_TIME = 5 * 60_000;
 
