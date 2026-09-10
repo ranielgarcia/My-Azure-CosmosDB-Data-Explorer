@@ -68,10 +68,10 @@ export function LeftPanel() {
           </div>
           <div className="min-w-0 leading-tight">
             <h1 className="truncate text-sm font-semibold tracking-tight">
-              Cosmos Explorer
+              CosmoScope
             </h1>
             <p className="truncate text-[11px] text-muted-foreground">
-              Data Explorer
+              Cosmos DB Data Explorer
             </p>
           </div>
         </div>

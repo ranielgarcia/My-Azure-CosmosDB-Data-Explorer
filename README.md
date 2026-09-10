@@ -1,4 +1,4 @@
-# Cosmos DB Data Explorer
+# CosmoScope
 
 A **React + TypeScript** Azure Cosmos DB Data Explorer with light/dark theming, a Monaco SQL editor,
 saved queries, Azure Table Storage integration, and a fully resizable three‑column layout. It
