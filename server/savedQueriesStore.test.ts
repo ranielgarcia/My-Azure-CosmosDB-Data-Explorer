@@ -1,7 +1,8 @@
-import { mkdtemp, readFile, rm } from "node:fs/promises";
+import { mkdtemp, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
+import { resetDbForTests, getDb } from "./db/connection.js";
 import {
   addQuery,
   deleteQuery,
@@ -14,11 +15,13 @@ let dir: string;
 describe("savedQueriesStore", () => {
   beforeEach(async () => {
     dir = await mkdtemp(join(tmpdir(), "saved-queries-store-"));
-    process.env.SAVED_QUERIES_DATA_FILE = join(dir, "saved-queries.json");
+    process.env.SQLITE_DB_FILE = join(dir, "app.db");
+    await resetDbForTests();
   });
 
   afterEach(async () => {
-    delete process.env.SAVED_QUERIES_DATA_FILE;
+    await resetDbForTests();
+    delete process.env.SQLITE_DB_FILE;
     await rm(dir, { recursive: true, force: true });
   });
 
@@ -89,12 +92,11 @@ describe("savedQueriesStore", () => {
     });
     // Guard against equal-millisecond timestamps in fast runs.
     if (second.createdAt <= first.createdAt) {
-      const raw = await readFile(process.env.SAVED_QUERIES_DATA_FILE!, "utf8");
-      const parsed = JSON.parse(raw) as {
-        queries: { id: string; createdAt: string }[];
-      };
-      const target = parsed.queries.find((q) => q.id === second.id);
-      if (target) target.createdAt = later;
+      const db = await getDb();
+      db.prepare("UPDATE saved_queries SET created_at = ? WHERE id = ?").run(
+        later,
+        second.id,
+      );
     }
 
     const list = await listQueries("db1", "c1");

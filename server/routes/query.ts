@@ -14,6 +14,68 @@ interface QueryRequestBody {
   continuationToken?: string;
 }
 
+interface QueryFeedPage {
+  resources: unknown[];
+  requestCharge: number;
+  hasMoreResults: boolean;
+  continuationToken?: string | null;
+}
+
+interface FilledQueryPage {
+  items: unknown[];
+  requestCharge: number;
+  continuationToken: string | null;
+}
+
+type FetchQueryPage = (options: FeedOptions) => Promise<QueryFeedPage>;
+
+function usableContinuationToken(token: string | null | undefined) {
+  return typeof token === "string" && token.trim().length > 0 ? token : null;
+}
+
+export async function fillQueryPage(
+  maxItemCount: number,
+  continuationToken: string | undefined,
+  fetchPage: FetchQueryPage,
+): Promise<FilledQueryPage> {
+  const items: unknown[] = [];
+  let requestCharge = 0;
+  let currentToken = usableContinuationToken(continuationToken);
+  let nextToken: string | null = null;
+  const seenTokens = new Set<string>();
+
+  if (currentToken) {
+    seenTokens.add(currentToken);
+  }
+
+  while (items.length < maxItemCount) {
+    const remaining = maxItemCount - items.length;
+    const options: FeedOptions = { maxItemCount: remaining };
+    if (currentToken) {
+      options.continuationToken = currentToken;
+    }
+
+    const page = await fetchPage(options);
+    items.push(...page.resources);
+    requestCharge += page.requestCharge;
+    nextToken = page.hasMoreResults
+      ? usableContinuationToken(page.continuationToken)
+      : null;
+
+    if (items.length >= maxItemCount || !nextToken) {
+      break;
+    }
+    if (seenTokens.has(nextToken)) {
+      throw new Error("Cosmos DB returned a non-advancing continuation token.");
+    }
+
+    seenTokens.add(nextToken);
+    currentToken = nextToken;
+  }
+
+  return { items, requestCharge, continuationToken: nextToken };
+}
+
 // POST /api/databases/:dbId/containers/:containerId/query
 // Body: { query, parameters?, maxItemCount?, continuationToken? }
 // -> 200: { items, count, requestCharge, continuationToken | null }
@@ -40,22 +102,30 @@ queryRouter.post(
         return;
       }
 
-      const container = cosmosClient.database(dbId).container(containerId);
-      const options: FeedOptions = {
-        maxItemCount: maxItemCount ?? DEFAULT_MAX_ITEM_COUNT,
-      };
-      if (continuationToken) {
-        options.continuationToken = continuationToken;
+      const requestedMaxItemCount = maxItemCount ?? DEFAULT_MAX_ITEM_COUNT;
+      if (
+        !Number.isInteger(requestedMaxItemCount) ||
+        requestedMaxItemCount <= 0
+      ) {
+        res.status(400).json({
+          error: "maxItemCount must be a positive integer.",
+        });
+        return;
       }
 
-      const iterator = container.items.query({ query, parameters }, options);
-      const page = await iterator.fetchNext();
+      const container = cosmosClient.database(dbId).container(containerId);
+      const page = await fillQueryPage(
+        requestedMaxItemCount,
+        continuationToken,
+        (options) =>
+          container.items.query({ query, parameters }, options).fetchNext(),
+      );
 
       res.json({
-        items: page.resources,
-        count: page.resources.length,
+        items: page.items,
+        count: page.items.length,
         requestCharge: page.requestCharge,
-        continuationToken: page.hasMoreResults ? page.continuationToken : null,
+        continuationToken: page.continuationToken,
       });
     } catch (err) {
       next(err);
