@@ -13,6 +13,8 @@ The application will allow users to:
 - Browse databases and collections (containers).
 - View databases and collections in a collapsible navigation tree.
 - Open collections in separate tabs.
+- Create multiple named query subtabs inside each collection tab.
+- Drag collection tabs into as many as three horizontal panes for side-by-side comparison.
 - Execute SQL-based Cosmos DB queries.
 - View query results as formatted JSON.
 - Navigate and interact with multiple collections simultaneously.
@@ -80,10 +82,13 @@ SELECT * FROM c
 
 Display query results below the query editor:
 
-- Format results as pretty-printed JSON.
+- Default to a pretty-printed JSON array, with a button beside Execute that toggles table mode.
+- In table mode, render one item per row and show the selected item's complete JSON in a right-side detail pane.
+- Derive configurable columns from top-level properties after the first result data arrives; default to `id` plus the first other property and allow any number of selected columns.
+- Persist the display mode and selected columns independently for each query subtab, but do not persist result rows or row selection.
 - Use a dedicated results panel.
 - Support large result sets via **append-style pagination** (continuation tokens): fetch 100 items
-  per page and a *Load more* button appends the next page, accumulating the RU charge.
+  per page and a _Load more_ button appends the next page, accumulating the RU charge.
 - Enable scrolling.
 - Use syntax highlighting if practical.
 - Include copy-to-clipboard functionality.
@@ -136,9 +141,12 @@ The design should feel like a modernized version of Azure Cosmos DB Data Explore
 ### Collection Tabs
 
 - Open multiple collections simultaneously.
-- Keep query state per tab.
+- Keep independent query state per named subtab.
 - Allow tab closing.
-- Preserve query text while switching tabs.
+- Allow subtabs to be added, renamed inline, and closed while retaining at least one per tab.
+- Preserve subtab names and query text while switching tabs or restarting the app.
+- Allow top-level collection tabs, but not subtabs, to be reordered and moved between up to three horizontal panes.
+- Preserve pane membership, ordering, active selections, and widths.
 
 ### Query Execution
 
@@ -149,7 +157,9 @@ The design should feel like a modernized version of Azure Cosmos DB Data Explore
 
 ### Results Viewer
 
-- Pretty-formatted JSON display.
+- Pretty-formatted JSON array and compact table display modes.
+- Searchable top-level column configuration for table mode.
+- Keyboard-accessible row selection with full-object JSON detail.
 - Copy results to clipboard.
 - Clear results.
 - Optional JSON tree view.
