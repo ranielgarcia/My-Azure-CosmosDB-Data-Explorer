@@ -10,7 +10,7 @@ once their label arrays are supplied. Also remove the leftover debug `console.lo
 
 **Steps**
 
-1. **Engine**: Add to [monacoAnnotations.ts](src/features/query-results/kleene-monaco-data-annotations/monacoAnnotations.ts):
+1. **Engine**: Add to [monacoAnnotations.ts](src/features/query-results/data-annotations/monacoAnnotations.ts):
    - `EnumFieldAnnotationOptions { fieldName: string; labels: readonly string[]; inlineClassName?: string }`
    - local `escapeRegExp(value)` helper (none exists in repo yet).
    - `generateEnumFieldDecorations(model, text, options)`: builds regex
@@ -23,7 +23,7 @@ once their label arrays are supplied. Also remove the leftover debug `console.lo
      since it's a text scan, not an AST walk (matches current architecture's approach).
 
 2. **Registry** _(depends on 1)_: Create
-   [tabAnnotations.ts](src/features/query-results/kleene-monaco-data-annotations/tabAnnotations.ts):
+   [tabAnnotations.ts](src/features/query-results/data-annotations/tabAnnotations.ts):
    - `FieldEnumAnnotationConfig { kind: "enum"; fieldName: string; labels: readonly string[] }`
      and `type FieldAnnotationConfig = FieldEnumAnnotationConfig` (union to grow later, e.g. a
      future `"utcDate"` per-field kind).
@@ -34,7 +34,7 @@ once their label arrays are supplied. Also remove the leftover debug `console.lo
      `case "enum"` → `generateEnumFieldDecorations`), concatenating all resulting decorations.
 
 3. **Container config** _(depends on 2)_: Create
-   `src/features/query-results/kleene-monaco-data-annotations/containers/stockroom.ts`:
+   `src/features/query-results/data-annotations/containers/stockroom.ts`:
    - `const STOCKROOM_DOCUMENT_TYPES = ["Unknown", "StockroomItem", "StockroomTransaction",
 "AdvanceShipmentNotice", "PurchaseOrder", "GITHeader", "GITDetail"] as const;`
    - `export const stockroomFieldAnnotations: FieldAnnotationConfig[] = [{ kind: "enum",
@@ -45,7 +45,7 @@ fieldName: "documentType", labels: STOCKROOM_DOCUMENT_TYPES }];`
 
 4. **Wire into JsonViewer** _(depends on 2, 3)_: Edit
    [JsonViewer.tsx](src/features/query-results/JsonViewer.tsx) lines ~43-66:
-   - Import `generateTabFieldDecorations` from `./kleene-monaco-data-annotations/tabAnnotations`.
+   - Import `generateTabFieldDecorations` from `./data-annotations/tabAnnotations`.
    - Remove the `if (tabId === "stockroom__stockroom") console.log(...)` debug block entirely.
    - Build the decorations array as the concatenation of the existing UTC-date decorations (unchanged,
      still gated on `timeZone`) and `generateTabFieldDecorations(model, jsonText, tabId)` (always run,
@@ -53,7 +53,7 @@ fieldName: "documentType", labels: STOCKROOM_DOCUMENT_TYPES }];`
    - Keep the `useEffect` dependency array as-is (`[jsonText, timeZone, monacoEditor, tabId]`).
 
 5. **Tests** _(depends on 1-3, parallel with 4)_:
-   - Add cases to [monacoAnnotations.test.ts](src/features/query-results/kleene-monaco-data-annotations/monacoAnnotations.test.ts)
+   - Add cases to [monacoAnnotations.test.ts](src/features/query-results/data-annotations/monacoAnnotations.test.ts)
      for `generateEnumFieldDecorations`: matches and labels a valid index, skips (returns no
      decoration) for an out-of-range index, ignores unrelated same-prefix keys, reuses the existing
      `createTestModel` helper.
@@ -63,11 +63,11 @@ fieldName: "documentType", labels: STOCKROOM_DOCUMENT_TYPES }];`
 
 **Relevant files**
 
-- `src/features/query-results/kleene-monaco-data-annotations/monacoAnnotations.ts` — add `generateEnumFieldDecorations` + `escapeRegExp`, reuse `generatePatternDecorations`.
-- `src/features/query-results/kleene-monaco-data-annotations/monacoAnnotations.test.ts` — new test cases.
-- `src/features/query-results/kleene-monaco-data-annotations/tabAnnotations.ts` — new registry + dispatcher (new file).
-- `src/features/query-results/kleene-monaco-data-annotations/tabAnnotations.test.ts` — new file.
-- `src/features/query-results/kleene-monaco-data-annotations/containers/stockroom.ts` — new file, enum labels.
+- `src/features/query-results/data-annotations/monacoAnnotations.ts` — add `generateEnumFieldDecorations` + `escapeRegExp`, reuse `generatePatternDecorations`.
+- `src/features/query-results/data-annotations/monacoAnnotations.test.ts` — new test cases.
+- `src/features/query-results/data-annotations/tabAnnotations.ts` — new registry + dispatcher (new file).
+- `src/features/query-results/data-annotations/tabAnnotations.test.ts` — new file.
+- `src/features/query-results/data-annotations/containers/stockroom.ts` — new file, enum labels.
 - `src/features/query-results/JsonViewer.tsx` — wire in `generateTabFieldDecorations`, remove debug block.
 
 **Verification**

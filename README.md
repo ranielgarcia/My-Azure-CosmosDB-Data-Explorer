@@ -9,11 +9,6 @@ reach the browser.
 
 ---
 
-## Documentation
-
-Confluence document:
-[Kleene Cosmos DB Data Explorer](https://colesgroup.atlassian.net/wiki/x/OAA0agE)
-
 ## Features
 
 ### Database & container tree

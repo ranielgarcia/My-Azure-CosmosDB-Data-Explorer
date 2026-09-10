@@ -2,9 +2,7 @@ import type { FieldAnnotationConfig } from "../tabAnnotations";
 
 export const STOCKROOM_TAB_ID = "stockroom__stockroom";
 
-/** Index maps to the numeric `documentType` value stored on stockroom documents.
- * Must be keep insync with Kleene.Domain.Enums.StockroomDocumentType
- */
+/** Index maps to the numeric `documentType` value stored on stockroom documents. */
 const STOCKROOM_DOCUMENT_TYPES = [
   "Unknown",
   "StockroomItem",
@@ -15,9 +13,7 @@ const STOCKROOM_DOCUMENT_TYPES = [
   "GITDetail",
 ] as const;
 
-/** Index maps to the numeric `source` value stored on stockroom transactions.
- * Must be keep insync with Kleene.Domain.Enums.TransactionSource
- */
+/** Index maps to the numeric `source` value stored on stockroom transactions. */
 const STOCKROOM_TRANSACTION_SOURCE = [
   "Split",
   "Rework Check Tool",

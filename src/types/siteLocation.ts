@@ -29,7 +29,7 @@ export interface StoreDetails {
   OpeningDate: string | null;
   ClosingDate: string | null;
   Phone: string;
-  ColesState: string;
+  RegionState: string;
   BrandId: number;
   BrandName: string;
   Fax: string;

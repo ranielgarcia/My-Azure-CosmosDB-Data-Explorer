@@ -6,8 +6,7 @@ Guidance for AI coding agents working in this repository.
 
 **Scaffolded.** The application lives at the **repo root**: the React app source is in `src/`, the
 Express proxy is in `server/`, and all config (`package.json`, `vite.config.ts`, `tsconfig*.json`)
-sits at the root. (Earlier drafts referenced a `kleene-cosmos-db-data-explorer/` subfolder; that was
-dropped in favour of the repo root.)
+sits at the root.
 
 **Read these first (authoritative spec):**
 

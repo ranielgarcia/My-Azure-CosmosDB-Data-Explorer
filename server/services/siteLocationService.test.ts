@@ -63,8 +63,8 @@ describe("siteLocationService", () => {
 
   it("refreshCache caches every store and reports the count", async () => {
     const tableService = makeTableService([
-      buildEntity("WA", "0205", "0205", "Coles Karrinyup"),
-      buildEntity("VIC", "0311", "0311", "Coles Chadstone"),
+      buildEntity("WA", "0205", "0205", "Test Store North"),
+      buildEntity("VIC", "0311", "0311", "Test Store South"),
     ]);
     const service = createSiteLocationService({ tableService, db });
 
@@ -72,12 +72,12 @@ describe("siteLocationService", () => {
     expect(result).toEqual({ count: 2 });
 
     const store = await service.getStore("WA", "0205");
-    expect(store.StoreName).toBe("Coles Karrinyup");
+    expect(store.StoreName).toBe("Test Store North");
 
     const all = await service.getAllStores();
     expect(all).toEqual([
-      { StoreId: "0205", StoreName: "Coles Karrinyup" },
-      { StoreId: "0311", StoreName: "Coles Chadstone" },
+      { StoreId: "0205", StoreName: "Test Store North" },
+      { StoreId: "0311", StoreName: "Test Store South" },
     ]);
   });
 
@@ -100,12 +100,12 @@ describe("siteLocationService", () => {
 
   it("getStore falls back to the table on a cache miss and caches the result", async () => {
     const tableService = makeTableService([
-      buildEntity("WA", "0205", "0205", "Coles Karrinyup"),
+      buildEntity("WA", "0205", "0205", "Test Store North"),
     ]);
     const service = createSiteLocationService({ tableService, db });
 
     const details = await service.getStore("WA", "0205");
-    expect(details.StoreName).toBe("Coles Karrinyup");
+    expect(details.StoreName).toBe("Test Store North");
     expect(tableService.getEntity).toHaveBeenCalledOnce();
 
     const row = db
@@ -127,12 +127,14 @@ describe("siteLocationService", () => {
 
   it("getAllStores auto-builds the cache when it is empty", async () => {
     const tableService = makeTableService([
-      buildEntity("WA", "0205", "0205", "Coles Karrinyup"),
+      buildEntity("WA", "0205", "0205", "Test Store North"),
     ]);
     const service = createSiteLocationService({ tableService, db });
 
     const stores = await service.getAllStores();
-    expect(stores).toEqual([{ StoreId: "0205", StoreName: "Coles Karrinyup" }]);
+    expect(stores).toEqual([
+      { StoreId: "0205", StoreName: "Test Store North" },
+    ]);
   });
 
   it("rejects keys containing path traversal characters", async () => {
