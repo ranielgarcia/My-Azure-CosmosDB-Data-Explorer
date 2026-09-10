@@ -6,6 +6,31 @@ CosmoScope Cosmos DB Data Explorer is a custom-built tool designed for the Suppo
 
 The tool enables support team members to quickly investigate issues encountered within the X application by providing direct access to Cosmos DB data through an interface tailored to operational support workflows. Unlike the standard Azure Portal experience, CosmoScope focuses on making application data easier to understand and analyze, reducing the time required to troubleshoot incidents and validate business processes.
 
+## 🎯 Why I Built This
+
+The application we support runs stores across Australia, spanning multiple states and timezones.
+Cosmos DB stores every timestamp in **UTC**, which makes raw documents hard to reason about during
+an investigation — a UTC value gives no immediate sense of "was this during store hours?" or "what
+time did this actually happen for that store's team?".
+
+CosmoScope was built to close that gap:
+
+- **Automatic UTC → store-local time conversion**, so the actual local time at the affected store
+  is always visible alongside the raw UTC value, letting support engineers reason about store
+  hours/events correctly and communicate accurately with store team members in their own timezone
+  (see [Store-Aware Context](#-store-aware-context)).
+- **Inline enum decoding**, so raw integer values (e.g. `"documentType": 1`) are annotated with
+  their human-readable business meaning directly in the query results, removing the need to
+  cross-reference application source code during an investigation (see
+  [Enhanced Query Result Experience](#-enhanced-query-result-experience)).
+- **Store selection as a first-class concept**, so once a support engineer picks the store they're
+  investigating, its timezone, operating hours, and stockroom zone data are loaded and applied
+  automatically for the rest of the session.
+
+These annotations render directly in the query results (Monaco editor), turning raw Cosmos
+documents into something a support engineer can interpret at a glance, without manual timezone
+math or digging through code to decode enum values.
+
 ## 💻Local Environment Only
 
 This application is designed to run locally only, since it relies on the Azure CLI credentials associated with your account.
