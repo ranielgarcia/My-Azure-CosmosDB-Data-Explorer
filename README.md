@@ -8,6 +8,8 @@ to hand to anyone.
 The Azure Cosmos SDK runs only inside a lightweight Express **backend proxy** — credentials never
 reach the browser.
 
+![Whole Page](./doc-assets/Whole.png)
+
 ---
 
 ## Why this exists
@@ -57,6 +59,18 @@ the selected store:
 - **Persistent store selection**, so the chosen store survives page refreshes and browser
   sessions.
 
+**Store Selection:**
+
+![Store Selection Dropdown](./doc-assets/Store%20Selection.png)
+
+**Store Details Card:**
+
+![Store Details Panel](./doc-assets/Store-details.png)
+
+**Stockroom Zones Reset Status:**
+
+![Stockroom Zones Status](./doc-assets/Stockroom-zones-reset-status.png)
+
 The "selected store" (which store you're currently investigating) and the "site-location" cache
 (the store master data itself: timezone, address, hours) are two distinct, independently
 persisted layers — see [Architecture](#architecture) for how they fit together.
@@ -70,9 +84,14 @@ Monaco JSON viewer without modifying the underlying JSON text:
   with their human-readable business label, while the original value is preserved and a hover
   tooltip shows the full enum list with the current value highlighted. Enums are configured
   per-container (e.g. `documentType` for the stockroom container).
+
+![Enum Value Annotations](./doc-assets/Enum-value-data-annotations.png)
+
 - **Human-readable timestamps** — UTC ISO datetime strings are annotated with both the selected
   store's local time (using its IANA timezone, e.g. `Australia/Perth`) and the browser's local
   time, displayed alongside the raw value.
+
+![UTC Datetime Conversion Annotations](./doc-assets/UTC-datetime-convertion-annotation.png)
 
 These enhancements significantly reduce the effort required to interpret Cosmos DB documents,
 enabling faster root-cause analysis without cross-referencing application code or doing manual
@@ -84,6 +103,8 @@ Collapsible database → container tree in the left panel, with partition-key to
 container opens (or activates) a query tab — no duplicate tabs. The **Refresh** button reloads the
 whole database tree and the Table Storage store cache in one click.
 
+![Database and Containers Tree View](./doc-assets/Database-and-containers.png)
+
 ### Monaco SQL editor
 
 A full [Monaco](https://microsoft.github.io/monaco-editor/) editor instance with Cosmos SQL support:
@@ -93,6 +114,8 @@ A full [Monaco](https://microsoft.github.io/monaco-editor/) editor instance with
 - **IntelliSense / autocomplete** — keyword and function completions (with `$0` snippet placeholders)
   plus **field completions derived from actual result data**: `c.` expands to top-level fields;
   `c.address.` expands to nested children (max depth 6, alias-dot-aware).
+
+![IntelliSense Autocomplete](./doc-assets/Intellisense.png)
 - **Execute selected text** — highlight part of the query and press **Execute** / **Ctrl/⌘ + Enter**
   to run only that fragment (or the whole query with nothing selected).
 - **Cursor position** displayed (line : column) in the editor toolbar.
@@ -121,7 +144,12 @@ Cosmos continuation tokens internally to fill each page.
   **copy-to-clipboard** button. UTC ISO datetime strings are **annotated in-place** with both the
   selected store's local time (using its IANA timezone, e.g. `Australia/Perth`) and the browser's
   local time — without modifying the underlying JSON text.
+
+![JSON View Results](./doc-assets/Json-View.png)
+
 - **Table view** — configurable columns; click a row to see the full JSON detail.
+
+![Table View Results](./doc-assets/Table-view.png)
 - **Status bar** — per-tab display of running item count, cumulative Request Units (RU), and load
   state.
 - Clear loading/empty/error states throughout; connection and tree-load failures appear in the
@@ -133,8 +161,13 @@ Cosmos continuation tokens internally to fill each page.
 - **Multiple tabs**, each with **multiple named subtabs** for running variations of a query
   against the same container (double-click a subtab to rename it). Re-opening the same container
   activates the existing tab instead of creating a duplicate.
+
+![Tab and Subtab Management](./doc-assets/Tab-Subtabs.png)
+
 - **Up to 3 side-by-side panes** — drag a tab to the left/right edge of the window to split the
   view, and resize panes freely.
+
+![Multiple Tabs and Split Panes](./doc-assets/Multiple-tabs.png)
 - **Drag-and-drop tab reordering** within and across panes.
 - **Full session persistence** — tab/subtab structure, query text, pane layout, and result column
   widths are saved to SQLite and restored after a restart (debounced auto-save, ~1 s).
@@ -149,6 +182,8 @@ A **right panel** (`Saved Queries`) scoped per database + container:
 - Click a saved query to load it into the editor instantly.
 - Trash icon to delete.
 - Queries are saved server-side in SQLite (UUID, name <= 120 chars, query <= 100 KB, newest-first).
+
+![Saved Queries Panel](./doc-assets/Save-queries.png)
 
 ### Azure Table Storage — Store Details
 
