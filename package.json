@@ -15,7 +15,7 @@
   "dependencies": {
     "@azure/cosmos": "^4.3.0",
     "@azure/data-tables": "^13.3.2",
-    "@azure/identity": "^4.10.0",
+    "@azure/identity": "^4.14.1",
     "@dnd-kit/core": "^6.3.1",
     "@dnd-kit/sortable": "^10.0.0",
     "@dnd-kit/utilities": "^3.2.2",
